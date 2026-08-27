@@ -36,6 +36,8 @@ export const initDB = async () => {
         is_quantitative INTEGER DEFAULT 0,
         goal_amount REAL,
         unit TEXT,
+        color TEXT DEFAULT '#00E676',
+        icon TEXT DEFAULT 'Activity',
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
 
@@ -50,6 +52,10 @@ export const initDB = async () => {
         FOREIGN KEY (habit_id) REFERENCES habits (id) ON DELETE CASCADE
       );
     `);
+
+    // -- Migração --
+    try { await db.execAsync(`ALTER TABLE habits ADD COLUMN color TEXT DEFAULT '#00E676';`); } catch (e) {}
+    try { await db.execAsync(`ALTER TABLE habits ADD COLUMN icon TEXT DEFAULT 'Activity';`); } catch (e) {}
     
     console.log('✅ Banco de dados Memento inicializado com sucesso!');
   } catch (error) {
