@@ -1,5 +1,6 @@
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import * as SystemUI from 'expo-system-ui';
 import { useEffect, useState } from 'react';
 import { initDB } from '../src/database/db';
 
@@ -14,6 +15,7 @@ export default function RootLayout() {
       try {
         // 1. O App liga e manda criar/conectar o Banco de Dados
         await initDB();
+        await SystemUI.setBackgroundColorAsync('#121212');
       } catch (error) {
         console.error("Erro fatal ao carregar o app:", error);
       } finally {
