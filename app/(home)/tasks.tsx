@@ -9,9 +9,8 @@ import {
   TouchableOpacity,
   View
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useDateStore } from '../src/store/useDateStore';
-import { useTaskStore } from '../src/store/useTaskStore';
+import { useDateStore } from '../../src/store/useDateStore';
+import { useTaskStore } from '../../src/store/useTaskStore';
 
 export default function TasksScreen() {
   // Conectando aos Stores
@@ -35,17 +34,11 @@ export default function TasksScreen() {
 
   return (
     // Limitando a área da aplicação
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor="#121212" />
 
-      {/* CABEÇALHO */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Memento</Text>
-        <Text style={styles.dateText}>{selectedDate}</Text>
-      </View>
-
       {/* CAMPO DE NOVA TAREFA */}
-      <View style={styles.inputContainer}>
+      <View style={[styles.inputContainer, { marginTop: 20 }]}>
         <TextInput
           style={styles.input}
           placeholder="Adicionar nova tarefa..."
@@ -61,6 +54,7 @@ export default function TasksScreen() {
 
       {/* LISTA DE TAREFAS */}
       <FlatList
+        style={{ flex: 1 }}
         data={tasks}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
@@ -68,7 +62,7 @@ export default function TasksScreen() {
           <Text style={styles.emptyText}>Nenhuma tarefa para este dia.</Text>
         }
         renderItem={({ item }) => (
-          <View style={styles.taskCard}>
+          <View style={[styles.taskCard, item.is_completed && { opacity: 0.6 }]}>
             <TouchableOpacity 
               style={styles.checkbox} 
               onPress={() => toggleTask(item.id, item.is_completed)}
@@ -100,7 +94,7 @@ export default function TasksScreen() {
           <Text style={styles.clearButtonText}>Limpar concluídas</Text>
         </TouchableOpacity>
       )}
-    </SafeAreaView>
+    </View>
   );
 }
 
