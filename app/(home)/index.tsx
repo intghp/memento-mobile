@@ -1,8 +1,724 @@
-import { Text, View } from 'react-native';
+import { format } from 'date-fns';
+import { Activity, Apple, ArrowLeft, Baby, Bed, Bike, Book, BookOpen, Brain, Briefcase, Camera, Car, Check, Circle, Clock, Cloud, Code, Coffee, Compass, Cpu, CreditCard, Crosshair, Droplets, Dumbbell, Feather, Flag, Flame, Gamepad2, Gift, GraduationCap, Guitar, Headphones, Heart, Home, Image, Key, Leaf, Map, Mic, Minus, Monitor, Moon, Music, Palette, PenTool, Pill, Plane, Plus, Scissors, Shield, ShoppingBag, Smartphone, Smile, Speaker, Star, Sun, Target, Thermometer, Trash, Trash2, Trophy, Truck, Tv, Umbrella, Utensils, Video, Watch, Wifi, Wind, X, XCircle } from 'lucide-react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { Animated, FlatList, KeyboardAvoidingView, Modal, Platform, ScrollView, SectionList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { useDateStore } from '../../src/store/useDateStore';
+import { Habit, useHabitStore } from '../../src/store/useHabitStore';
+
+const HABIT_COLORS = [
+  '#F44336', '#E91E63', '#9C27B0', '#673AB7', '#3F51B5', '#2196F3', '#03A9F4', '#00BCD4', '#009688', '#4CAF50', '#8BC34A', '#CDDC39', '#FFEB3B', '#FFC107', '#FF9800', '#FF5722', '#795548', '#9E9E9E', '#607D8B',
+  '#D32F2F', '#C2185B', '#7B1FA2', '#512DA8', '#303F9F', '#1976D2', '#0288D1', '#0097A7', '#00796B', '#388E3C', '#689F38', '#AFB42B', '#FBC02D', '#FFA000', '#F57C00', '#E64A19', '#5D4037', '#616161', '#455A64',
+  '#FF8A80', '#FF80AB', '#EA80FC', '#B388FF', '#8C9EFF', '#82B1FF', '#80D8FF', '#84FFFF', '#A7FFEB', '#B9F6CA', '#CCFF90', '#F4FF81', '#FFFF8D', '#FFE57F', '#FFD180', '#FF9E80'
+];
+
+const ICON_MAP: Record<string, any> = {
+  Activity, Dumbbell, Bed, Droplets, Apple, Coffee, Pill, Heart, Brain, Clock, Book, GraduationCap, Briefcase, Code, Target, XCircle,
+  Bike, Utensils, Home, Baby, Smile, Gamepad2, Tv, Video, Music, Guitar, Palette, PenTool, Star, Sun, Moon, Flame, Leaf, BookOpen, ShoppingBag, Car,
+  Plane, Compass, Map, Headphones, Speaker, Mic, Smartphone, Gift, Trophy,
+  Watch, Thermometer, Shield, CreditCard, Cpu, Monitor, Camera, Image, Feather, Flag, Crosshair, Umbrella, Cloud, Wind, Key, Wifi, Truck, Scissors, Trash,
+};
+
 export default function HabitsScreen() {
+  const { selectedDate } = useDateStore();
+  const { habits, fetchHabits, addHabit, updateHabit, toggleHabitStatus, deleteHabit } = useHabitStore();
+
+  // Estados do Modal de Adicionar Hábito
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [modalStep, setModalStep] = useState<'main' | 'color' | 'icon'>('main');
+  const [editingHabitId, setEditingHabitId] = useState<number | null>(null);
+  
+  const [newHabitName, setNewHabitName] = useState('');
+  const [newHabitShift, setNewHabitShift] = useState('Qualquer'); 
+  const [selectedColor, setSelectedColor] = useState(HABIT_COLORS[9]);
+  const [selectedIcon, setSelectedIcon] = useState('Activity');
+
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+
+  const todayDateString = format(new Date(), 'yyyy-MM-dd');
+  const isPastDay = selectedDate < todayDateString;
+
+  // 1. Sempre que a data (Calendário) mudar, busca os hábitos atualizados
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 0,
+      duration: 50,
+      useNativeDriver: true,
+    }).start(() => {
+      fetchHabits(selectedDate).then(() => {
+        Animated.timing(fadeAnim, {
+          toValue: 1,
+          duration: 150,
+          useNativeDriver: true,
+        }).start();
+      });
+    });
+  }, [selectedDate]);
+
+  // 2. Transforma a lista plana do banco em Seções (Manhã, Tarde, Noite)
+  const getSections = () => {
+    const qualquer = habits.filter(h => h.shift === 'Qualquer');
+    const manha = habits.filter(h => h.shift === 'Manhã');
+    const tarde = habits.filter(h => h.shift === 'Tarde');
+    const noite = habits.filter(h => h.shift === 'Noite');
+
+    const sections = [];
+    if (qualquer.length > 0) sections.push({ title: '✨ Geral', data: qualquer });
+    if (manha.length > 0) sections.push({ title: '☀️ Manhã', data: manha });
+    if (tarde.length > 0) sections.push({ title: '🌤️ Tarde', data: tarde });
+    if (noite.length > 0) sections.push({ title: '🌙 Noite', data: noite });
+
+    return sections;
+  };
+
+  const resetModal = () => {
+    setNewHabitName('');
+    setNewHabitShift('Qualquer');
+    setSelectedColor(HABIT_COLORS[9]);
+    setSelectedIcon('Activity');
+    setEditingHabitId(null);
+    setModalStep('main');
+    setShowDeleteConfirm(false);
+    setModalVisible(false);
+  };
+
+  const openEditModal = (habit: Habit) => {
+    setNewHabitName(habit.name);
+    setNewHabitShift(habit.shift || 'Qualquer');
+    setSelectedColor(habit.color);
+    setSelectedIcon(habit.icon);
+    setEditingHabitId(habit.id);
+    setModalStep('main');
+    setShowDeleteConfirm(false);
+    setModalVisible(true);
+  };
+
+  // 3. Função para salvar o novo hábito
+  const handleSaveHabit = async () => {
+    if (newHabitName.trim() === '') return;
+    
+    if (editingHabitId) {
+      await updateHabit(editingHabitId, {
+        name: newHabitName,
+        shift: newHabitShift,
+        color: selectedColor,
+        icon: selectedIcon
+      }, selectedDate);
+    } else {
+      await addHabit({
+        name: newHabitName,
+        frequency: 'Diário',
+        specific_days: null,
+        shift: newHabitShift,
+        is_quantitative: false,
+        goal_amount: null,
+        unit: null,
+        color: selectedColor,
+        icon: selectedIcon
+      }, selectedDate);
+    }
+
+    resetModal();
+  };
+
+  const executeDelete = () => {
+    if (editingHabitId) {
+      deleteHabit(editingHabitId, selectedDate);
+      resetModal();
+    }
+  };
+
+  const sections = getSections();
+  const SelectedIconComponent = ICON_MAP[selectedIcon] || Activity;
+
   return (
-    <View style={{ flex: 1, backgroundColor: '#121212', justifyContent: 'center', alignItems: 'center' }}>
-      <Text style={{ color: '#fff' }}>Tela de Hábitos</Text>
+    <View style={styles.container}>
+      
+      <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
+        {/* LISTA DE HÁBITOS (Se vazia, mostra mensagem, se não, mostra as seções) */}
+        {sections.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Nenhum hábito criado ainda.</Text>
+            <Text style={styles.emptySubText}>Clique no + para começar sua jornada.</Text>
+          </View>
+        ) : (
+          <SectionList
+            sections={sections}
+            keyExtractor={(item) => item.id.toString()}
+            contentContainerStyle={styles.listContent}
+            showsVerticalScrollIndicator={false}
+            renderSectionHeader={({ section: { title } }) => (
+              <View style={styles.sectionHeader}>
+                <Text style={styles.sectionTitle}>{title}</Text>
+                <View style={styles.sectionLine} />
+              </View>
+            )}
+            renderItem={({ item }) => {
+              const isCompleted = item.is_completed === 1;
+              const isFailed = item.is_completed === -1;
+              const isSkipped = item.is_skipped === 1;
+              
+              const isFaded = isFailed || (isPastDay && !isCompleted && !isSkipped);
+              const isColored = isCompleted || isSkipped;
+
+              const IconComponent = ICON_MAP[item.icon] || Activity;
+              
+              let RightIcon = Circle;
+              let rightIconColor = '#333';
+
+              if (isCompleted) {
+                RightIcon = Check;
+                rightIconColor = item.color;
+              } else if (isSkipped) {
+                RightIcon = Minus;
+                rightIconColor = item.color;
+              } else if (isFailed || (isPastDay && !isCompleted && !isSkipped)) {
+                RightIcon = X;
+                rightIconColor = '#555555';
+              }
+
+              return (
+                <View style={styles.habitRow}>
+                  
+                  {/* Esquerda: Ícone Genérico e Nome */}
+                  <TouchableOpacity 
+                    activeOpacity={0.7} 
+                    style={styles.leftContent}
+                    onPress={() => {}} 
+                    onLongPress={() => openEditModal(item)}
+                  >
+                    <View style={[styles.iconWrapper, { borderColor: isColored ? item.color : '#333' }]}>
+                      <IconComponent color={isColored ? item.color : '#555'} size={16} />
+                    </View>
+                    <Text style={[styles.habitName, isFaded && styles.habitNameFaded]}>
+                      {item.name}
+                    </Text>
+                  </TouchableOpacity>
+
+                  {/* Direita: Check ou Círculo Vazio */}
+                  <TouchableOpacity 
+                    activeOpacity={0.7} 
+                    style={styles.rightContent}
+                    // Ao clicar na linha, marca ou desmarca o hábito neste dia!
+                    onPress={() => toggleHabitStatus(item.id, selectedDate, item.is_completed, item.is_skipped)}
+                  >
+                    {(isCompleted || isSkipped || isFailed || isPastDay) ? (
+                      <RightIcon color={rightIconColor} size={24} strokeWidth={3} />
+                    ) : (
+                      <Circle color="#2A2A2A" size={24} />
+                    )}
+                  </TouchableOpacity>
+                  
+                </View>
+              );
+            }}
+          />
+        )}
+      </Animated.View>
+
+      {/* BOTÃO FLUTUANTE DE ADICIONAR */}
+      <TouchableOpacity 
+        style={styles.fab} 
+        activeOpacity={0.8}
+        onPress={() => {
+          resetModal();
+          setModalVisible(true);
+        }}
+      >
+        <Plus color="#121212" size={28} />
+      </TouchableOpacity>
+
+      <Modal visible={showDeleteConfirm} transparent={true} animationType="fade" onRequestClose={() => setShowDeleteConfirm(false)}>
+        <View style={styles.deleteModalOverlay}>
+          <View style={styles.deleteModalContent}>
+            <Text style={styles.deleteModalTitle}>Excluir hábito?</Text>
+            <Text style={styles.deleteModalText}>Todo o histórico será apagado. Esta ação não pode ser desfeita.</Text>
+            <View style={styles.deleteModalButtons}>
+              <TouchableOpacity style={styles.deleteCancelButton} onPress={() => setShowDeleteConfirm(false)}>
+                <Text style={styles.deleteCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.deleteConfirmButton} onPress={executeDelete}>
+                <Text style={styles.deleteConfirmText}>Excluir</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* MODAL PRINCIPAL E SUBTELAS */}
+      <Modal
+        visible={isModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={resetModal}
+      >
+        <KeyboardAvoidingView 
+          style={styles.fullScreenModalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
+          <View style={styles.fullScreenModalContent}>
+            
+            {modalStep === 'main' && (
+              <View style={{ flex: 1 }}>
+                <View style={styles.fullScreenHeader}>
+                  <TouchableOpacity onPress={resetModal} style={styles.headerIconButton}>
+                    <ArrowLeft color="#fff" size={24} />
+                  </TouchableOpacity>
+                  <Text style={styles.fullScreenTitle}>{editingHabitId ? 'Editar hábito' : 'Novo hábito'}</Text>
+                  <TouchableOpacity onPress={handleSaveHabit} style={styles.headerTextButton}>
+                    <Text style={styles.headerSaveText}>SALVAR</Text>
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.fullScreenScrollContent}>
+                  
+                  <View style={styles.formRow}>
+                    <View style={styles.inputGroupFlexible}>
+                      <Text style={styles.label}>Nome</Text>
+                      <View style={styles.nameInputContainer}>
+                        <TouchableOpacity style={styles.nameIconSelector} onPress={() => setModalStep('icon')}>
+                          <SelectedIconComponent color={selectedColor} size={20} />
+                        </TouchableOpacity>
+                        <TextInput
+                          style={styles.nameInput}
+                          placeholder="Nome do hábito..."
+                          placeholderTextColor="#666"
+                          value={newHabitName}
+                          onChangeText={setNewHabitName}
+                        />
+                      </View>
+                    </View>
+                    
+                    <View style={styles.inputGroupFixed}>
+                      <Text style={styles.label}>Cor</Text>
+                      <TouchableOpacity 
+                        style={[styles.colorBox, { backgroundColor: selectedColor }]} 
+                        onPress={() => setModalStep('color')}
+                      />
+                    </View>
+                  </View>
+
+                  <Text style={styles.label}>Frequência</Text>
+                  <View style={styles.readOnlyBox}>
+                    <Text style={styles.readOnlyText}>Todo dia</Text>
+                  </View>
+
+                  <Text style={styles.label}>Turno</Text>
+                  <View style={styles.shiftSelector}>
+                    {['Qualquer', 'Manhã', 'Tarde', 'Noite'].map((shift) => (
+                      <TouchableOpacity
+                        key={shift}
+                        style={[styles.shiftButton, newHabitShift === shift && styles.shiftButtonActive]}
+                        onPress={() => setNewHabitShift(shift)}
+                      >
+                        <Text style={[styles.shiftText, newHabitShift === shift && styles.shiftTextActive]}>
+                          {shift}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+
+                  {editingHabitId && (
+                    <TouchableOpacity style={styles.deleteHabitButton} onPress={() => setShowDeleteConfirm(true)}>
+                      <Trash2 color="#FF5252" size={20} />
+                      <Text style={styles.deleteHabitText}>Excluir hábito</Text>
+                    </TouchableOpacity>
+                  )}
+                  
+                </ScrollView>
+              </View>
+            )}
+
+            {modalStep === 'color' && (
+              <View style={{ flex: 1 }}>
+                <View style={styles.fullScreenHeader}>
+                  <TouchableOpacity onPress={() => setModalStep('main')} style={styles.headerIconButton}>
+                    <ArrowLeft color="#fff" size={24} />
+                  </TouchableOpacity>
+                  <Text style={styles.fullScreenTitle}>Cor</Text>
+                  <View style={{ width: 60 }} /> 
+                </View>
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.fullScreenScrollContent}>
+                  <View style={styles.gridContainer}>
+                    {HABIT_COLORS.map(color => (
+                      <TouchableOpacity 
+                        key={color} 
+                        style={[styles.gridColorCircle, { backgroundColor: color }, selectedColor === color && styles.gridColorCircleActive]}
+                        onPress={() => {
+                          setSelectedColor(color);
+                          setModalStep('main');
+                        }}
+                      />
+                    ))}
+                  </View>
+                </ScrollView>
+              </View>
+            )}
+
+            {modalStep === 'icon' && (
+              <View style={{ flex: 1 }}>
+                <View style={styles.fullScreenHeader}>
+                  <TouchableOpacity onPress={() => setModalStep('main')} style={styles.headerIconButton}>
+                    <ArrowLeft color="#fff" size={24} />
+                  </TouchableOpacity>
+                  <Text style={styles.fullScreenTitle}>Ícone</Text>
+                  <View style={{ width: 60 }} /> 
+                </View>
+                <FlatList
+                  data={Object.keys(ICON_MAP)}
+                  keyExtractor={(item) => item}
+                  numColumns={4}
+                  showsVerticalScrollIndicator={false}
+                  columnWrapperStyle={styles.iconGridRow}
+                  contentContainerStyle={styles.fullScreenScrollContent}
+                  initialNumToRender={16}
+                  renderItem={({ item: iconName }) => {
+                    const Icon = ICON_MAP[iconName];
+                    const isActive = selectedIcon === iconName;
+                    return (
+                      <TouchableOpacity 
+                        style={[styles.gridIconButton, isActive && { backgroundColor: selectedColor }]}
+                        onPress={() => {
+                          setSelectedIcon(iconName);
+                          setModalStep('main');
+                        }}
+                      >
+                        <Icon color={isActive ? '#121212' : '#888'} size={24} />
+                      </TouchableOpacity>
+                    );
+                  }}
+                />
+              </View>
+            )}
+
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
+
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  emptySubText: {
+    color: '#666666',
+    fontSize: 14,
+    marginTop: 8,
+  },
+  listContent: {
+    paddingBottom: 100, 
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 32,
+    paddingBottom: 16,
+    backgroundColor: '#121212', 
+  },
+  sectionTitle: {
+    color: '#888888',
+    fontSize: 13,
+    fontWeight: 'bold',
+    letterSpacing: 1.5,
+    marginRight: 12,
+  },
+  sectionLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: '#2A2A2A',
+  },
+  habitRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(255, 255, 255, 0.03)', 
+  },
+  leftContent: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+  },
+  iconWrapper: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+  },
+  habitName: {
+    color: '#ffffff',
+    fontSize: 16,
+    fontWeight: '500',
+  },
+  habitNameFaded: {
+    color: '#888888',
+  },
+  rightContent: {
+    width: 60,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
+    paddingVertical: 14,
+  },
+  fab: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#ffffff',
+    justifyContent: 'center',
+    alignItems: 'center',
+    elevation: 4, 
+    shadowColor: '#000', 
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
+  deleteModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  deleteModalContent: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    alignItems: 'center',
+    elevation: 5,
+  },
+  deleteModalTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 12,
+  },
+  deleteModalText: {
+    color: '#888888',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 24,
+    lineHeight: 20,
+  },
+  deleteModalButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    gap: 12,
+  },
+  deleteCancelButton: {
+    flex: 1,
+    backgroundColor: '#1E1E1E',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333333',
+  },
+  deleteCancelText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  deleteConfirmButton: {
+    flex: 1,
+    backgroundColor: '#FF5252',
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  deleteConfirmText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  fullScreenModalOverlay: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
+  fullScreenModalContent: {
+    flex: 1,
+    backgroundColor: '#121212',
+  },
+  fullScreenHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
+    backgroundColor: '#121212',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1E1E1E',
+  },
+  headerIconButton: {
+    padding: 8,
+  },
+  fullScreenTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+  },
+  headerTextButton: {
+    padding: 8,
+  },
+  headerSaveText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: 'bold',
+    letterSpacing: 1,
+  },
+  fullScreenScrollContent: {
+    padding: 24,
+    paddingBottom: 60,
+  },
+  formRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 24,
+  },
+  inputGroupFlexible: {
+    flex: 1,
+    marginRight: 16,
+  },
+  inputGroupFixed: {
+    width: 60,
+  },
+  label: {
+    color: '#888888',
+    fontSize: 14,
+    fontWeight: '600',
+    marginBottom: 8,
+  },
+  nameInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1E1E1E',
+    borderRadius: 8,
+    height: 54,
+  },
+  nameIconSelector: {
+    paddingHorizontal: 16,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  nameInput: {
+    flex: 1,
+    color: '#ffffff',
+    fontSize: 16,
+    height: '100%',
+    paddingRight: 16,
+  },
+  colorBox: {
+    width: '100%',
+    height: 54,
+    borderRadius: 8,
+  },
+  readOnlyBox: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 8,
+    height: 54,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    marginBottom: 24,
+  },
+  readOnlyText: {
+    color: '#ffffff',
+    fontSize: 16,
+  },
+  shiftSelector: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 40,
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  shiftButton: {
+    flex: 1,
+    minWidth: '22%',
+    height: 44,
+    borderRadius: 8,
+    backgroundColor: '#1E1E1E',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  shiftButtonActive: {
+    backgroundColor: '#ffffff',
+  },
+  shiftText: {
+    color: '#888888',
+    fontWeight: '600',
+    fontSize: 12,
+  },
+  shiftTextActive: {
+    color: '#121212',
+  },
+  deleteHabitButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 16,
+    marginTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#1E1E1E',
+  },
+  deleteHabitText: {
+    color: '#FF5252',
+    fontSize: 16,
+    fontWeight: '500',
+    marginLeft: 8,
+  },
+  gridContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 16,
+  },
+  gridColorCircle: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    borderWidth: 4,
+    borderColor: 'transparent',
+  },
+  gridColorCircleActive: {
+    borderColor: '#ffffff',
+  },
+  iconGridRow: {
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  gridIconButton: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#1E1E1E',
+    justifyContent: 'center',
+    alignItems: 'center',
+  }
+});

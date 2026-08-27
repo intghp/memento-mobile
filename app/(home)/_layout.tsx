@@ -1,5 +1,6 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
 import { withLayoutContext } from 'expo-router';
+import { LayoutGrid, MoreVertical } from 'lucide-react-native'; // <-- Ícones novos adicionados
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -58,6 +59,7 @@ export default function HomeLayout() {
   }).current;
 
   const viewabilityConfig = useRef({ itemVisiblePercentThreshold: 50 }).current;
+  
   const renderDay = ({ item, index }: { item: Date; index: number }) => {
     const dateString = format(item, 'yyyy-MM-dd');
     const isSelected = selectedDate === dateString;
@@ -95,6 +97,20 @@ export default function HomeLayout() {
   return (
     <SafeAreaView style={styles.container}>
       
+      {/* APP BAR (CABEÇALHO MESTRE) */}
+      <View style={styles.appBar}>
+        <Text style={styles.appTitle}>Memento</Text>
+        
+        <View style={styles.appBarActions}>
+          <TouchableOpacity style={styles.iconButton}>
+            <LayoutGrid color="#ffffff" size={24} />
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.iconButton}>
+            <MoreVertical color="#ffffff" size={24} />
+          </TouchableOpacity>
+        </View>
+      </View>
+
       {/* HUD BÚSSOLA (CALENDÁRIO) */}
       <View style={styles.calendarContainer}>
 
@@ -142,8 +158,33 @@ const styles = StyleSheet.create({
     flex: 1, 
     backgroundColor: '#121212' 
   },
-  calendarContainer: {
+  // --- ESTILOS NOVOS DA APP BAR ---
+  appBar: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 24,
     paddingTop: 16,
+    paddingBottom: 8,
+    backgroundColor: '#121212',
+  },
+  appTitle: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: '#ffffff',
+    letterSpacing: 0.5,
+  },
+  appBarActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconButton: {
+    marginLeft: 20,
+    padding: 4,
+  },
+  // ---------------------------------
+  calendarContainer: {
+    paddingTop: 8,
     backgroundColor: '#121212',
     position: 'relative', 
   },
