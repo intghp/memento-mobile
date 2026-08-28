@@ -1,6 +1,7 @@
 import { CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react-native';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  Animated,
   FlatList,
   StatusBar,
   StyleSheet,
@@ -19,17 +20,35 @@ export default function TasksScreen() {
   
   // Estado local apenas para o campo de digitação
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  
+  const borderAnim = useRef(new Animated.Value(0)).current;
 
   // Toda vez que a data mudar, o app busca as tarefas daquele dia
   useEffect(() => {
     fetchTasks(selectedDate);
-  }, [selectedDate]);
+  }, [selectedDate, fetchTasks]);
 
   // Função para adicionar tarefa e limpar o campo
   const handleAddTask = () => {
     if (newTaskTitle.trim() === '') return;
     addTask(newTaskTitle, selectedDate);
     setNewTaskTitle('');
+  };
+
+  const handleFocus = () => {
+    Animated.timing(borderAnim, {
+      toValue: 1,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  };
+
+  const handleBlur = () => {
+    Animated.timing(borderAnim, {
+      toValue: 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
   };
 
   return (
@@ -39,16 +58,22 @@ export default function TasksScreen() {
 
       {/* CAMPO DE NOVA TAREFA */}
       <View style={[styles.inputContainer, { marginTop: 20 }]}>
-        <TextInput
-          style={styles.input}
-          placeholder="Adicionar nova tarefa..."
-          placeholderTextColor="#666"
-          value={newTaskTitle}
-          onChangeText={setNewTaskTitle}
-          onSubmitEditing={handleAddTask}
-        />
+        <View style={styles.formContainer}>
+          <TextInput
+            style={styles.animatedInput}
+            placeholder="Adicionar nova tarefa..."
+            placeholderTextColor="#666"
+            value={newTaskTitle}
+            onChangeText={setNewTaskTitle}
+            onSubmitEditing={handleAddTask}
+            onFocus={handleFocus}
+            onBlur={handleBlur}
+          />
+          <View style={styles.borderBase} />
+          <Animated.View style={[styles.borderAnimated, { transform: [{ scaleX: borderAnim }] }]} />
+        </View>
         <TouchableOpacity style={styles.addButton} onPress={handleAddTask}>
-          <Plus color="#fff" size={24} />
+          <Plus color="#FFFFFF" size={28} />
         </TouchableOpacity>
       </View>
 
@@ -58,6 +83,8 @@ export default function TasksScreen() {
         data={tasks}
         keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
         ListEmptyComponent={
           <Text style={styles.emptyText}>Nenhuma tarefa para este dia.</Text>
         }
@@ -68,9 +95,9 @@ export default function TasksScreen() {
               onPress={() => toggleTask(item.id, item.is_completed)}
             >
               {item.is_completed ? (
-                <CheckCircle2 color="#888" size={24} />
+                <CheckCircle2 color="#FFFFFF" size={24} />
               ) : (
-                <Circle color="#fff" size={24} />
+                <Circle color="#666" size={24} />
               )}
             </TouchableOpacity>
             
@@ -125,24 +152,43 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     paddingHorizontal: 24,
     marginBottom: 20,
+    alignItems: 'center',
   },
-  input: {
+  formContainer: {
     flex: 1,
+    position: 'relative',
     height: 50,
-    backgroundColor: '#1E1E1E',
-    borderRadius: 8,
-    paddingHorizontal: 16,
-    color: '#ffffff',
+    justifyContent: 'center',
+  },
+  animatedInput: {
+    color: '#fff',
     fontSize: 16,
+    backgroundColor: 'transparent',
+    width: '100%',
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+  },
+  borderBase: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 1,
+    backgroundColor: 'rgba(221, 221, 221, 0.15)',
+  },
+  borderAnimated: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    height: 2,
+    backgroundColor: '#FFFFFF',
   },
   addButton: {
-    width: 50,
-    height: 50,
-    backgroundColor: '#333333',
-    borderRadius: 8,
     justifyContent: 'center',
     alignItems: 'center',
-    marginLeft: 12,
+    padding: 12,
+    marginLeft: 8,
   },
   listContainer: {
     paddingHorizontal: 24,
@@ -151,13 +197,12 @@ const styles = StyleSheet.create({
   taskCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1E1E1E',
-    padding: 16,
-    borderRadius: 8,
-    marginBottom: 12,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1E1E1E',
   },
   checkbox: {
-    marginRight: 12,
+    marginRight: 16,
   },
   taskTitle: {
     fontSize: 16,

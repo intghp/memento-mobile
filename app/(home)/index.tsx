@@ -1,5 +1,5 @@
 import { format } from 'date-fns';
-import { Activity, Apple, ArrowLeft, Baby, Bed, Bike, Book, BookOpen, Brain, Briefcase, Camera, Car, Check, Circle, Clock, Cloud, Code, Coffee, Compass, Cpu, CreditCard, Crosshair, Droplets, Dumbbell, Feather, Flag, Flame, Gamepad2, Gift, GraduationCap, Guitar, Headphones, Heart, Home, Image, Key, Leaf, Map, Mic, Minus, Monitor, Moon, Music, Palette, PenTool, Pill, Plane, Plus, Scissors, Shield, ShoppingBag, Smartphone, Smile, Speaker, Star, Sun, Target, Thermometer, Trash, Trash2, Trophy, Truck, Tv, Umbrella, Utensils, Video, Watch, Wifi, Wind, X, XCircle } from 'lucide-react-native';
+import { Activity, AlertTriangle, Apple, ArrowLeft, Baby, Bed, Bike, Book, BookOpen, Brain, Briefcase, Camera, Car, Check, Circle, Clock, Cloud, Code, Coffee, Compass, Cpu, CreditCard, Crosshair, Droplets, Dumbbell, Feather, Flag, Flame, Gamepad2, Gift, GraduationCap, Guitar, Headphones, Heart, Home, Image, Key, Leaf, Map, Mic, Minus, Monitor, Moon, Music, Palette, PenTool, Pill, Plane, Plus, Scissors, Shield, ShoppingBag, Smartphone, Smile, Speaker, Star, Sun, Target, Thermometer, Trash, Trash2, Trophy, Truck, Tv, Umbrella, Utensils, Video, Watch, Wifi, Wind, X, XCircle } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, FlatList, KeyboardAvoidingView, Modal, Platform, ScrollView, SectionList, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDateStore } from '../../src/store/useDateStore';
@@ -41,10 +41,17 @@ export default function HabitsScreen() {
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const [isEveryday, setIsEveryday] = useState(true);
+  const [activeDays, setActiveDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
+
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const shiftAnim = useRef(new Animated.Value(0)).current;
+  const [segmentWidth, setSegmentWidth] = useState(0);
 
   const todayDateString = format(new Date(), 'yyyy-MM-dd');
   const isPastDay = selectedDate < todayDateString;
+
+  const SHIFTS = ['Qualquer', 'Manhã', 'Tarde', 'Noite'];
 
   // 1. Sempre que a data (Calendário) mudar, busca os hábitos atualizados
   useEffect(() => {
@@ -62,6 +69,15 @@ export default function HabitsScreen() {
       });
     });
   }, [selectedDate]);
+
+  useEffect(() => {
+    const index = SHIFTS.indexOf(newHabitShift);
+    Animated.timing(shiftAnim, {
+      toValue: index !== -1 ? index : 0,
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+  }, [newHabitShift]);
 
   // 2. Transforma a lista plana do banco em Seções (Manhã, Tarde, Noite)
   const getSections = () => {
@@ -90,6 +106,8 @@ export default function HabitsScreen() {
     setEditingHabitId(null);
     setModalStep('main');
     setShowDeleteConfirm(false);
+    setIsEveryday(true);
+    setActiveDays([0, 1, 2, 3, 4, 5, 6]);
     setModalVisible(false);
   };
 
@@ -104,6 +122,8 @@ export default function HabitsScreen() {
     setEditingHabitId(habit.id);
     setModalStep('main');
     setShowDeleteConfirm(false);
+    setIsEveryday(true);
+    setActiveDays([0, 1, 2, 3, 4, 5, 6]);
     setModalVisible(true);
   };
 
@@ -309,14 +329,20 @@ export default function HabitsScreen() {
       <Modal visible={showDeleteConfirm} transparent={true} animationType="fade" onRequestClose={() => setShowDeleteConfirm(false)}>
         <View style={styles.deleteModalOverlay}>
           <View style={styles.deleteModalContent}>
-            <Text style={styles.deleteModalTitle}>Excluir hábito?</Text>
-            <Text style={styles.deleteModalText}>Todo o histórico será apagado. Esta ação não pode ser desfeita.</Text>
+            <View style={styles.deleteModalHeader}>
+              <AlertTriangle color="#D9534F" size={36} />
+              <View style={styles.deleteModalTextContainer}>
+                <Text style={styles.deleteModalTitle}>EXCLUIR HÁBITO</Text>
+                <Text style={styles.deleteModalText}>Esta ação não pode ser desfeita.</Text>
+              </View>
+            </View>
+            <View style={styles.deleteModalDivider} />
             <View style={styles.deleteModalButtons}>
               <TouchableOpacity style={styles.deleteCancelButton} onPress={() => setShowDeleteConfirm(false)}>
-                <Text style={styles.deleteCancelText}>Cancelar</Text>
+                <Text style={styles.deleteCancelText}>CANCELAR</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.deleteConfirmButton} onPress={executeDelete}>
-                <Text style={styles.deleteConfirmText}>Excluir</Text>
+                <Text style={styles.deleteConfirmText}>EXCLUIR</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -377,7 +403,7 @@ export default function HabitsScreen() {
                   </View>
 
                   <View style={styles.switchRow}>
-                    <Text style={styles.labelSwitch}>Hábito com meta (Quantitativo)?</Text>
+                    <Text style={styles.labelSwitch}>Meta quantitativa?</Text>
                     <Switch
                       value={isQuantitative}
                       onValueChange={setIsQuantitative}
@@ -390,9 +416,9 @@ export default function HabitsScreen() {
                     <View style={styles.formRow}>
                       <View style={styles.inputGroupFlexible}>
                         <Text style={styles.label}>Meta (ex: 2.5)</Text>
-                        <View style={styles.nameInputContainer}>
+                        <View style={styles.pillInputContainer}>
                           <TextInput
-                            style={[styles.nameInput, { paddingLeft: 16 }]}
+                            style={styles.pillInput}
                             placeholder="0.0"
                             placeholderTextColor="#666"
                             keyboardType="numeric"
@@ -404,9 +430,9 @@ export default function HabitsScreen() {
                       
                       <View style={styles.inputGroupFlexible}>
                         <Text style={styles.label}>Unidade (ex: L)</Text>
-                        <View style={styles.nameInputContainer}>
+                        <View style={styles.pillInputContainer}>
                           <TextInput
-                            style={[styles.nameInput, { paddingLeft: 16 }]}
+                            style={styles.pillInput}
                             placeholder="Litros, km..."
                             placeholderTextColor="#666"
                             value={unit}
@@ -417,24 +443,92 @@ export default function HabitsScreen() {
                     </View>
                   )}
 
-                  <Text style={styles.label}>Frequência</Text>
-                  <View style={styles.readOnlyBox}>
-                    <Text style={styles.readOnlyText}>Todo dia</Text>
+                  <View style={styles.frequencyHeader}>
+                    <Text style={styles.label}>Frequência</Text>
+                    <TouchableOpacity onPress={() => {
+                      const nextStatus = !isEveryday;
+                      setIsEveryday(nextStatus);
+                      if (nextStatus) {
+                        setActiveDays([0, 1, 2, 3, 4, 5, 6]);
+                      } else {
+                        setActiveDays([]);
+                      }
+                    }}>
+                      <Text style={[styles.frequencyToggle, { color: selectedColor }]}>
+                        {isEveryday ? 'Todo dia' : 'Dias específicos'}
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  
+                  <View style={styles.minimalDaysRow}>
+                    {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, index) => {
+                      const isActive = activeDays.includes(index);
+                      return (
+                        <TouchableOpacity 
+                          key={index} 
+                          activeOpacity={0.7}
+                          style={[
+                            styles.minimalDayItem,
+                            isActive && { backgroundColor: selectedColor }
+                          ]}
+                          onPress={() => {
+                            setIsEveryday(false);
+                            setActiveDays(prev => {
+                              const newDays = prev.includes(index)
+                                ? prev.filter(d => d !== index)
+                                : [...prev, index];
+                              
+                              if (newDays.length === 7) setIsEveryday(true);
+                              return newDays;
+                            });
+                          }}
+                        >
+                          <Text style={[
+                            styles.minimalDayText, 
+                            isActive ? { color: '#121212' } : { color: '#666666' }
+                          ]}>
+                            {day}
+                          </Text>
+                        </TouchableOpacity>
+                      )
+                    })}
                   </View>
 
                   <Text style={styles.label}>Turno</Text>
-                  <View style={styles.shiftSelector}>
-                    {['Qualquer', 'Manhã', 'Tarde', 'Noite'].map((shift) => (
-                      <TouchableOpacity
-                        key={shift}
-                        style={[styles.shiftButton, newHabitShift === shift && styles.shiftButtonActive]}
-                        onPress={() => setNewHabitShift(shift)}
-                      >
-                        <Text style={[styles.shiftText, newHabitShift === shift && styles.shiftTextActive]}>
-                          {shift}
-                        </Text>
-                      </TouchableOpacity>
-                    ))}
+                  <View style={styles.diRadioWrap}>
+                    <View 
+                      style={styles.diRadioIsland}
+                      onLayout={(e) => setSegmentWidth((e.nativeEvent.layout.width - 12) / 4)}
+                    >
+                      {segmentWidth > 0 && (
+                        <Animated.View 
+                          style={[
+                            styles.diRadioIndicator, 
+                            { 
+                              width: segmentWidth, 
+                              transform: [{ 
+                                translateX: shiftAnim.interpolate({
+                                  inputRange: [0, 1, 2, 3],
+                                  outputRange: [0, segmentWidth, segmentWidth * 2, segmentWidth * 3]
+                                })
+                              }] 
+                            }
+                          ]} 
+                        />
+                      )}
+                      {SHIFTS.map((shift) => (
+                        <TouchableOpacity
+                          key={shift}
+                          activeOpacity={0.7}
+                          style={styles.diRadioBtn}
+                          onPress={() => setNewHabitShift(shift)}
+                        >
+                          <Text style={[styles.diRadioBtnText, newHabitShift === shift && styles.diRadioBtnTextActive]}>
+                            {shift}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
                   </View>
 
                   {editingHabitId && (
@@ -518,6 +612,7 @@ export default function HabitsScreen() {
   );
 }
 
+// ESTILIZAÇÃO
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -637,55 +732,67 @@ const styles = StyleSheet.create({
   },
   deleteModalContent: {
     backgroundColor: '#1E1E1E',
-    borderRadius: 16,
-    padding: 24,
+    borderRadius: 6,
     width: '100%',
-    alignItems: 'center',
+    maxWidth: 400,
     elevation: 5,
+    overflow: 'hidden',
+  },
+  deleteModalHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 24,
+  },
+  deleteModalTextContainer: {
+    marginLeft: 16,
+    flex: 1,
   },
   deleteModalTitle: {
     color: '#ffffff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: 'bold',
-    marginBottom: 12,
+    marginBottom: 4,
+    letterSpacing: 0.5,
   },
   deleteModalText: {
     color: '#888888',
     fontSize: 14,
-    textAlign: 'center',
-    marginBottom: 24,
-    lineHeight: 20,
+  },
+  deleteModalDivider: {
+    height: 1,
+    backgroundColor: '#2A2A2A',
+    width: '100%',
   },
   deleteModalButtons: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
+    padding: 16,
+    backgroundColor: '#161616',
     gap: 12,
   },
   deleteCancelButton: {
     flex: 1,
-    backgroundColor: '#1E1E1E',
-    paddingVertical: 14,
-    borderRadius: 8,
+    backgroundColor: '#2A2A2A',
+    paddingVertical: 12,
+    borderRadius: 4,
     alignItems: 'center',
     borderWidth: 1,
     borderColor: '#333333',
   },
   deleteCancelText: {
     color: '#ffffff',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
   },
   deleteConfirmButton: {
     flex: 1,
-    backgroundColor: '#FF5252',
-    paddingVertical: 14,
-    borderRadius: 8,
+    backgroundColor: '#D9534F',
+    paddingVertical: 12,
+    borderRadius: 4,
     alignItems: 'center',
   },
   deleteConfirmText: {
     color: '#ffffff',
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: 'bold',
   },
   progressModalOverlay: {
@@ -814,16 +921,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#1E1E1E',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 8,
     marginBottom: 24,
   },
   labelSwitch: {
-    color: '#ffffff',
+    color: '#888888',
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: '600',
   },
   inputGroupFlexible: {
     flex: 1,
@@ -858,49 +961,86 @@ const styles = StyleSheet.create({
     height: '100%',
     paddingRight: 16,
   },
+  pillInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#050505',
+    borderRadius: 9999,
+    height: 36,
+    paddingHorizontal: 16,
+  },
+  pillInput: {
+    flex: 1,
+    color: '#ffffff',
+    fontSize: 14,
+    height: '100%',
+  },
   colorBox: {
     width: '100%',
     height: 54,
     borderRadius: 8,
   },
-  readOnlyBox: {
-    backgroundColor: '#1E1E1E',
-    borderRadius: 8,
-    height: 54,
-    justifyContent: 'center',
-    paddingHorizontal: 16,
-    marginBottom: 24,
-  },
-  readOnlyText: {
-    color: '#ffffff',
-    fontSize: 16,
-  },
-  shiftSelector: {
+  frequencyHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 40,
-    flexWrap: 'wrap',
-    gap: 8,
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  shiftButton: {
-    flex: 1,
-    minWidth: '22%',
-    height: 44,
-    borderRadius: 8,
-    backgroundColor: '#1E1E1E',
+  frequencyToggle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  minimalDaysRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 32,
+    paddingHorizontal: 8,
+  },
+  minimalDayItem: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.05)',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  shiftButtonActive: {
-    backgroundColor: '#ffffff',
+  minimalDayText: {
+    fontSize: 14,
+    fontWeight: 'bold',
   },
-  shiftText: {
-    color: '#888888',
+  diRadioWrap: {
+    marginBottom: 40,
+  },
+  diRadioIsland: {
+    backgroundColor: '#000000',
+    borderRadius: 999,
+    padding: 6,
+    flexDirection: 'row',
+    position: 'relative',
+  },
+  diRadioIndicator: {
+    position: 'absolute',
+    top: 6,
+    bottom: 6,
+    left: 6,
+    backgroundColor: '#222222',
+    borderRadius: 999,
+  },
+  diRadioBtn: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 999,
+    zIndex: 2,
+  },
+  diRadioBtnText: {
+    color: '#aaaaaa',
+    fontSize: 13,
     fontWeight: '600',
-    fontSize: 12,
   },
-  shiftTextActive: {
-    color: '#121212',
+  diRadioBtnTextActive: {
+    color: '#ffffff',
   },
   deleteHabitButton: {
     flexDirection: 'row',
