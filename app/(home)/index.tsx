@@ -122,8 +122,16 @@ export default function HabitsScreen() {
     setEditingHabitId(habit.id);
     setModalStep('main');
     setShowDeleteConfirm(false);
-    setIsEveryday(true);
-    setActiveDays([0, 1, 2, 3, 4, 5, 6]);
+    
+    if (habit.specific_days) {
+      setIsEveryday(false);
+      const parsedDays = habit.specific_days.split(',').map(Number);
+      setActiveDays(parsedDays);
+    } else {
+      setIsEveryday(true);
+      setActiveDays([0, 1, 2, 3, 4, 5, 6]);
+    }
+    
     setModalVisible(true);
   };
 
@@ -132,6 +140,7 @@ export default function HabitsScreen() {
     if (newHabitName.trim() === '') return;
     
     const goalNum = isQuantitative ? parseFloat(goalAmount.replace(',', '.')) : null;
+    const daysString = isEveryday ? null : activeDays.sort().join(',');
 
     if (editingHabitId) {
       await updateHabit(editingHabitId, {
@@ -141,13 +150,14 @@ export default function HabitsScreen() {
         icon: selectedIcon,
         is_quantitative: isQuantitative,
         goal_amount: goalNum,
-        unit: isQuantitative ? unit : null
+        unit: isQuantitative ? unit : null,
+        specific_days: daysString
       }, selectedDate);
     } else {
       await addHabit({
         name: newHabitName,
         frequency: 'Diário',
-        specific_days: null,
+        specific_days: daysString,
         shift: newHabitShift,
         is_quantitative: isQuantitative,
         goal_amount: goalNum,
@@ -177,8 +187,8 @@ export default function HabitsScreen() {
         {/* LISTA DE HÁBITOS (Se vazia, mostra mensagem, se não, mostra as seções) */}
         {sections.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Nenhum hábito criado ainda.</Text>
-            <Text style={styles.emptySubText}>Clique no + para começar sua jornada.</Text>
+            <Text style={styles.emptyText}>Nenhum hábito para hoje.</Text>
+            <Text style={styles.emptySubText}>Clique no + para criar ou editar sua jornada.</Text>
           </View>
         ) : (
           <SectionList

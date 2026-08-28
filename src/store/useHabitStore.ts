@@ -36,6 +36,9 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
   fetchHabits: async (date) => {
     if (!date) return;
     try {
+      const [year, month, day] = date.split('-').map(Number);
+      const dayOfWeek = new Date(year, month - 1, day).getDay();
+      
       // Utiliza um LEFT JOIN: Pega todos os hábitos e, SE houver um log para hoje, traz junto.
       const result = await db.getAllAsync<Habit>(`
         SELECT 
@@ -46,7 +49,8 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
           l.amount_completed 
         FROM habits h
         LEFT JOIN habit_logs l ON h.id = l.habit_id AND l.target_date = ?
-      `, [date]);
+        WHERE h.specific_days IS NULL OR h.specific_days LIKE ?
+      `, [date, `%${dayOfWeek}%`]);
       
       set({ habits: result });
     } catch (error) {
@@ -85,7 +89,7 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
     try {
       await db.runAsync(`
         UPDATE habits 
-        SET name = ?, shift = ?, color = ?, icon = ?, is_quantitative = ?, goal_amount = ?, unit = ?
+        SET name = ?, shift = ?, color = ?, icon = ?, is_quantitative = ?, goal_amount = ?, unit = ?, specific_days = ?
         WHERE id = ?
       `, [
         habitData.name ?? 'Hábito',
@@ -95,6 +99,7 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
         habitData.is_quantitative ? 1 : 0,
         habitData.goal_amount ?? null,
         habitData.unit ?? null,
+        habitData.specific_days ?? null,
         habitId
       ]);
       
