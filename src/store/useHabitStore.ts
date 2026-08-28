@@ -7,7 +7,7 @@ export interface Habit {
   frequency: string;
   specific_days: string | null;
   shift: string; // 'Manhã', 'Tarde', 'Noite'
-  is_quantitative: boolean;
+  is_quantitative: number | boolean;
   goal_amount: number | null;
   unit: string | null;
   color: string;
@@ -25,6 +25,7 @@ interface HabitStore {
   addHabit: (habit: Omit<Habit, 'id' | 'log_id' | 'is_completed' | 'is_skipped' | 'amount_completed'>, currentDate: string) => Promise<void>;
   updateHabit: (habitId: number, habitData: Partial<Habit>, currentDate: string) => Promise<void>;
   toggleHabitStatus: (habitId: number, date: string, currentCompleted?: number, currentSkipped?: number) => Promise<void>;
+  updateHabitProgress: (habitId: number, date: string, amountCompleted: number, goalAmount: number | null) => Promise<void>;
   deleteHabit: (habitId: number, currentDate: string) => Promise<void>;
 }
 
@@ -84,13 +85,16 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
     try {
       await db.runAsync(`
         UPDATE habits 
-        SET name = ?, shift = ?, color = ?, icon = ?
+        SET name = ?, shift = ?, color = ?, icon = ?, is_quantitative = ?, goal_amount = ?, unit = ?
         WHERE id = ?
       `, [
         habitData.name ?? 'Hábito',
         habitData.shift ?? 'Qualquer',
         habitData.color ?? '#00E676',
         habitData.icon ?? 'Activity',
+        habitData.is_quantitative ? 1 : 0,
+        habitData.goal_amount ?? null,
+        habitData.unit ?? null,
         habitId
       ]);
       
@@ -148,6 +152,33 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
       await get().fetchHabits(date);
     } catch (error) {
       console.error('Erro ao alternar status do hábito:', error);
+    }
+  },
+
+  updateHabitProgress: async (habitId, date, amountCompleted, goalAmount) => {
+    if (!habitId || !date) return;
+    try {
+      const isCompleted = amountCompleted >= (goalAmount || 0) ? 1 : 0;
+      const existingLog = await db.getFirstAsync(
+        'SELECT id FROM habit_logs WHERE habit_id = ? AND target_date = ?', 
+        [habitId, date]
+      );
+      
+      if (existingLog) {
+         await db.runAsync(
+           'UPDATE habit_logs SET amount_completed = ?, is_completed = ?, is_skipped = 0 WHERE habit_id = ? AND target_date = ?', 
+           [amountCompleted, isCompleted, habitId, date]
+         );
+      } else {
+         await db.runAsync(
+           'INSERT INTO habit_logs (habit_id, target_date, is_completed, is_skipped, amount_completed) VALUES (?, ?, ?, 0, ?)', 
+           [habitId, date, isCompleted, amountCompleted]
+         );
+      }
+      
+      await get().fetchHabits(date);
+    } catch (error) {
+      console.error('Erro ao atualizar progresso do hábito:', error);
     }
   },
 

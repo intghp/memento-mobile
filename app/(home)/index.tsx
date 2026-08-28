@@ -1,7 +1,7 @@
 import { format } from 'date-fns';
 import { Activity, Apple, ArrowLeft, Baby, Bed, Bike, Book, BookOpen, Brain, Briefcase, Camera, Car, Check, Circle, Clock, Cloud, Code, Coffee, Compass, Cpu, CreditCard, Crosshair, Droplets, Dumbbell, Feather, Flag, Flame, Gamepad2, Gift, GraduationCap, Guitar, Headphones, Heart, Home, Image, Key, Leaf, Map, Mic, Minus, Monitor, Moon, Music, Palette, PenTool, Pill, Plane, Plus, Scissors, Shield, ShoppingBag, Smartphone, Smile, Speaker, Star, Sun, Target, Thermometer, Trash, Trash2, Trophy, Truck, Tv, Umbrella, Utensils, Video, Watch, Wifi, Wind, X, XCircle } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
-import { Animated, FlatList, KeyboardAvoidingView, Modal, Platform, ScrollView, SectionList, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, FlatList, KeyboardAvoidingView, Modal, Platform, ScrollView, SectionList, StyleSheet, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDateStore } from '../../src/store/useDateStore';
 import { Habit, useHabitStore } from '../../src/store/useHabitStore';
 
@@ -20,7 +20,7 @@ const ICON_MAP: Record<string, any> = {
 
 export default function HabitsScreen() {
   const { selectedDate } = useDateStore();
-  const { habits, fetchHabits, addHabit, updateHabit, toggleHabitStatus, deleteHabit } = useHabitStore();
+  const { habits, fetchHabits, addHabit, updateHabit, toggleHabitStatus, updateHabitProgress, deleteHabit } = useHabitStore();
 
   // Estados do Modal de Adicionar Hábito
   const [isModalVisible, setModalVisible] = useState(false);
@@ -31,6 +31,13 @@ export default function HabitsScreen() {
   const [newHabitShift, setNewHabitShift] = useState('Qualquer'); 
   const [selectedColor, setSelectedColor] = useState(HABIT_COLORS[9]);
   const [selectedIcon, setSelectedIcon] = useState('Activity');
+
+  const [isQuantitative, setIsQuantitative] = useState(false);
+  const [goalAmount, setGoalAmount] = useState('');
+  const [unit, setUnit] = useState('');
+
+  const [progressHabit, setProgressHabit] = useState<Habit | null>(null);
+  const [progressInput, setProgressInput] = useState('');
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -77,6 +84,9 @@ export default function HabitsScreen() {
     setNewHabitShift('Qualquer');
     setSelectedColor(HABIT_COLORS[9]);
     setSelectedIcon('Activity');
+    setIsQuantitative(false);
+    setGoalAmount('');
+    setUnit('');
     setEditingHabitId(null);
     setModalStep('main');
     setShowDeleteConfirm(false);
@@ -88,6 +98,9 @@ export default function HabitsScreen() {
     setNewHabitShift(habit.shift || 'Qualquer');
     setSelectedColor(habit.color);
     setSelectedIcon(habit.icon);
+    setIsQuantitative(!!habit.is_quantitative);
+    setGoalAmount(habit.goal_amount ? habit.goal_amount.toString() : '');
+    setUnit(habit.unit || '');
     setEditingHabitId(habit.id);
     setModalStep('main');
     setShowDeleteConfirm(false);
@@ -98,12 +111,17 @@ export default function HabitsScreen() {
   const handleSaveHabit = async () => {
     if (newHabitName.trim() === '') return;
     
+    const goalNum = isQuantitative ? parseFloat(goalAmount.replace(',', '.')) : null;
+
     if (editingHabitId) {
       await updateHabit(editingHabitId, {
         name: newHabitName,
         shift: newHabitShift,
         color: selectedColor,
-        icon: selectedIcon
+        icon: selectedIcon,
+        is_quantitative: isQuantitative,
+        goal_amount: goalNum,
+        unit: isQuantitative ? unit : null
       }, selectedDate);
     } else {
       await addHabit({
@@ -111,9 +129,9 @@ export default function HabitsScreen() {
         frequency: 'Diário',
         specific_days: null,
         shift: newHabitShift,
-        is_quantitative: false,
-        goal_amount: null,
-        unit: null,
+        is_quantitative: isQuantitative,
+        goal_amount: goalNum,
+        unit: isQuantitative ? unit : null,
         color: selectedColor,
         icon: selectedIcon
       }, selectedDate);
@@ -159,6 +177,10 @@ export default function HabitsScreen() {
               const isFailed = item.is_completed === -1;
               const isSkipped = item.is_skipped === 1;
               
+              const isQuant = !!item.is_quantitative;
+              const currentAmount = item.amount_completed || 0;
+              const unitLabel = item.unit || '';
+
               const isFaded = isFailed || (isPastDay && !isCompleted && !isSkipped);
               const isColored = isCompleted || isSkipped;
 
@@ -201,12 +223,30 @@ export default function HabitsScreen() {
                     activeOpacity={0.7} 
                     style={styles.rightContent}
                     // Ao clicar na linha, marca ou desmarca o hábito neste dia!
-                    onPress={() => toggleHabitStatus(item.id, selectedDate, item.is_completed, item.is_skipped)}
+                    onPress={() => {
+                      if (isQuant) {
+                        setProgressHabit(item);
+                        setProgressInput(currentAmount > 0 ? currentAmount.toString().replace('.', ',') : '');
+                      } else {
+                        toggleHabitStatus(item.id, selectedDate, item.is_completed, item.is_skipped);
+                      }
+                    }}
                   >
-                    {(isCompleted || isSkipped || isFailed || isPastDay) ? (
-                      <RightIcon color={rightIconColor} size={24} strokeWidth={3} />
+                    {isQuant ? (
+                      <View style={styles.quantRight}>
+                        <Text style={[styles.quantAmount, { color: isColored ? item.color : (isFaded ? '#555' : '#888') }]}>
+                          {currentAmount.toString().replace('.', ',')}
+                        </Text>
+                        {!!unitLabel && (
+                          <Text style={[styles.quantUnit, isFaded && { color: '#444' }]}>{unitLabel}</Text>
+                        )}
+                      </View>
                     ) : (
-                      <Circle color="#2A2A2A" size={24} />
+                      (isCompleted || isSkipped || isFailed || isPastDay) ? (
+                        <RightIcon color={rightIconColor} size={24} strokeWidth={3} />
+                      ) : (
+                        <Circle color="#2A2A2A" size={24} />
+                      )
                     )}
                   </TouchableOpacity>
                   
@@ -228,6 +268,43 @@ export default function HabitsScreen() {
       >
         <Plus color="#121212" size={28} />
       </TouchableOpacity>
+
+      <Modal visible={!!progressHabit} transparent={true} animationType="fade" onRequestClose={() => setProgressHabit(null)}>
+        <KeyboardAvoidingView style={styles.progressModalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={styles.progressModalContent}>
+            <Text style={styles.progressModalTitle}>Registrar Progresso</Text>
+            <Text style={styles.progressModalSub}>
+              Meta: {progressHabit?.goal_amount} {progressHabit?.unit}
+            </Text>
+
+            <View style={styles.progressInputRow}>
+              <TextInput
+                style={styles.progressInput}
+                keyboardType="numeric"
+                autoFocus
+                value={progressInput}
+                onChangeText={setProgressInput}
+                placeholder="0"
+                placeholderTextColor="#555"
+              />
+              <Text style={styles.progressUnitText}>{progressHabit?.unit}</Text>
+            </View>
+
+            <View style={styles.progressButtons}>
+              <TouchableOpacity style={styles.progressCancelBtn} onPress={() => setProgressHabit(null)}>
+                <Text style={styles.progressCancelText}>Cancelar</Text>
+              </TouchableOpacity>
+              <TouchableOpacity style={[styles.progressSaveBtn, { backgroundColor: progressHabit?.color || '#ffffff' }]} onPress={() => {
+                const amount = parseFloat(progressInput.replace(',', '.')) || 0;
+                updateHabitProgress(progressHabit!.id, selectedDate, amount, progressHabit!.goal_amount);
+                setProgressHabit(null);
+              }}>
+                <Text style={styles.progressSaveText}>Salvar</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </KeyboardAvoidingView>
+      </Modal>
 
       <Modal visible={showDeleteConfirm} transparent={true} animationType="fade" onRequestClose={() => setShowDeleteConfirm(false)}>
         <View style={styles.deleteModalOverlay}>
@@ -298,6 +375,47 @@ export default function HabitsScreen() {
                       />
                     </View>
                   </View>
+
+                  <View style={styles.switchRow}>
+                    <Text style={styles.labelSwitch}>Hábito com meta (Quantitativo)?</Text>
+                    <Switch
+                      value={isQuantitative}
+                      onValueChange={setIsQuantitative}
+                      trackColor={{ false: '#2A2A2A', true: selectedColor }}
+                      thumbColor={'#ffffff'}
+                    />
+                  </View>
+
+                  {isQuantitative && (
+                    <View style={styles.formRow}>
+                      <View style={styles.inputGroupFlexible}>
+                        <Text style={styles.label}>Meta (ex: 2.5)</Text>
+                        <View style={styles.nameInputContainer}>
+                          <TextInput
+                            style={[styles.nameInput, { paddingLeft: 16 }]}
+                            placeholder="0.0"
+                            placeholderTextColor="#666"
+                            keyboardType="numeric"
+                            value={goalAmount}
+                            onChangeText={setGoalAmount}
+                          />
+                        </View>
+                      </View>
+                      
+                      <View style={styles.inputGroupFlexible}>
+                        <Text style={styles.label}>Unidade (ex: L)</Text>
+                        <View style={styles.nameInputContainer}>
+                          <TextInput
+                            style={[styles.nameInput, { paddingLeft: 16 }]}
+                            placeholder="Litros, km..."
+                            placeholderTextColor="#666"
+                            value={unit}
+                            onChangeText={setUnit}
+                          />
+                        </View>
+                      </View>
+                    </View>
+                  )}
 
                   <Text style={styles.label}>Frequência</Text>
                   <View style={styles.readOnlyBox}>
@@ -480,6 +598,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 14,
   },
+  quantRight: {
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  quantAmount: {
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  quantUnit: {
+    fontSize: 10,
+    color: '#666666',
+    marginTop: 2,
+    textTransform: 'uppercase',
+  },
   fab: {
     position: 'absolute',
     bottom: 24,
@@ -556,6 +688,83 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
+  progressModalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 24,
+  },
+  progressModalContent: {
+    backgroundColor: '#1E1E1E',
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    alignItems: 'center',
+    elevation: 5,
+  },
+  progressModalTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginBottom: 4,
+  },
+  progressModalSub: {
+    color: '#888888',
+    fontSize: 14,
+    marginBottom: 24,
+  },
+  progressInputRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-end',
+    marginBottom: 32,
+  },
+  progressInput: {
+    color: '#ffffff',
+    fontSize: 48,
+    fontWeight: 'bold',
+    borderBottomWidth: 2,
+    borderBottomColor: '#333',
+    minWidth: 80,
+    textAlign: 'center',
+    paddingVertical: 8,
+  },
+  progressUnitText: {
+    color: '#888888',
+    fontSize: 20,
+    marginLeft: 12,
+    marginBottom: 12,
+    fontWeight: '600',
+  },
+  progressButtons: {
+    flexDirection: 'row',
+    gap: 12,
+    width: '100%',
+  },
+  progressCancelBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: '#333333',
+  },
+  progressCancelText: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  progressSaveBtn: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  progressSaveText: {
+    color: '#121212',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
   fullScreenModalOverlay: {
     flex: 1,
     backgroundColor: '#121212',
@@ -600,6 +809,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 24,
+  },
+  switchRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '#1E1E1E',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginBottom: 24,
+  },
+  labelSwitch: {
+    color: '#ffffff',
+    fontSize: 14,
+    fontWeight: '500',
   },
   inputGroupFlexible: {
     flex: 1,
