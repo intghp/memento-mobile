@@ -1,13 +1,6 @@
 import { create } from 'zustand';
 import { db } from '../database/db';
-
-export interface Task {
-  id: number;
-  title: string;
-  target_date: string;
-  is_completed: boolean;
-  position: number;
-}
+import { Task } from '../types';
 
 interface TaskStore {
   tasks: Task[];
