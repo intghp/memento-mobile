@@ -5,6 +5,7 @@ import { Animated, FlatList, KeyboardAvoidingView, Modal, Platform, ScrollView, 
 import { useDateStore } from '../../store/useDateStore';
 import { useHabitStore } from '../../store/useHabitStore';
 import { Habit } from '../../types';
+import { HabitMacroVision } from './heatmap/HabitMacroVision';
 import { styles } from './styles';
 
 const HABIT_COLORS = [
@@ -22,7 +23,7 @@ const ICON_MAP: Record<string, any> = {
 
 export default function HabitsList() {
   const { selectedDate } = useDateStore();
-  const { habits, fetchHabits, addHabit, updateHabit, toggleHabitStatus, updateHabitProgress, deleteHabit } = useHabitStore();
+  const { habits, fetchHabits, fetchHabitLogs, clearHabitLogs, addHabit, updateHabit, toggleHabitStatus, updateHabitProgress, deleteHabit } = useHabitStore();
 
   // Estados do Modal de Adicionar Hábito
   const [isModalVisible, setModalVisible] = useState(false);
@@ -40,6 +41,8 @@ export default function HabitsList() {
 
   const [progressHabit, setProgressHabit] = useState<Habit | null>(null);
   const [progressInput, setProgressInput] = useState('');
+  
+  const [heatmapHabit, setHeatmapHabit] = useState<Habit | null>(null);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
@@ -213,8 +216,11 @@ export default function HabitsList() {
               const currentAmount = item.amount_completed || 0;
               const unitLabel = item.unit || '';
 
-              const isFaded = isFailed || (isPastDay && !isCompleted && !isSkipped);
-              const isColored = isCompleted || isSkipped;
+              const progressPercent = isQuant && item.goal_amount ? Math.min(100, (currentAmount / item.goal_amount) * 100) : 0;
+              const hasPartialProgress = isQuant && currentAmount > 0 && !isCompleted && !isSkipped;
+
+              const isFaded = isFailed || (isPastDay && !isCompleted && !isSkipped && !hasPartialProgress);
+              const isColored = isCompleted || isSkipped || hasPartialProgress;
 
               const IconComponent = ICON_MAP[item.icon] || Activity;
               
@@ -227,19 +233,22 @@ export default function HabitsList() {
               } else if (isSkipped) {
                 RightIcon = Minus;
                 rightIconColor = item.color;
-              } else if (isFailed || (isPastDay && !isCompleted && !isSkipped)) {
+              } else if (isFailed || (isPastDay && !isCompleted && !isSkipped && !hasPartialProgress)) {
                 RightIcon = X;
                 rightIconColor = '#555555';
               }
 
               return (
-                <View style={styles.habitRow}>
-                  
+                <View style={styles.habitRow}>             
                   {/* Esquerda: Ícone Genérico e Nome */}
                   <TouchableOpacity 
                     activeOpacity={0.7} 
                     style={styles.leftContent}
-                    onPress={() => {}} 
+                    onPress={async () => {
+                      clearHabitLogs();             
+                      await fetchHabitLogs(item.id);
+                      setHeatmapHabit(item);
+                    }} 
                     onLongPress={() => openEditModal(item)}
                   >
                     <View style={[styles.iconWrapper, { borderColor: isColored ? item.color : '#333' }]}>
@@ -265,16 +274,22 @@ export default function HabitsList() {
                     }}
                   >
                     {isQuant ? (
-                      <View style={styles.quantRight}>
+                      <View style={[styles.quantRight, { width: '100%' }]}>
                         <Text style={[styles.quantAmount, { color: isColored ? item.color : (isFaded ? '#555' : '#888') }]}>
                           {currentAmount.toString().replace('.', ',')}
                         </Text>
                         {!!unitLabel && (
                           <Text style={[styles.quantUnit, isFaded && { color: '#444' }]}>{unitLabel}</Text>
                         )}
+                        
+                        {!isCompleted && !isSkipped && !isFailed && (
+                          <View style={{ width: '100%', height: 3, backgroundColor: '#2A2A2A', borderRadius: 2, marginTop: 4, overflow: 'hidden' }}>
+                            <View style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: item.color }} />
+                          </View>
+                        )}
                       </View>
                     ) : (
-                      (isCompleted || isSkipped || isFailed || isPastDay) ? (
+                      (isCompleted || isSkipped || isFailed || (isPastDay && !hasPartialProgress)) ? (
                         <RightIcon color={rightIconColor} size={24} strokeWidth={3} />
                       ) : (
                         <Circle color="#2A2A2A" size={24} />
@@ -300,6 +315,11 @@ export default function HabitsList() {
       >
         <Plus color="#121212" size={28} />
       </TouchableOpacity>
+
+      <HabitMacroVision 
+        habit={heatmapHabit} 
+        onClose={() => setHeatmapHabit(null)} 
+      />
 
       <Modal visible={!!progressHabit} transparent={true} animationType="fade" onRequestClose={() => setProgressHabit(null)}>
         <KeyboardAvoidingView style={styles.progressModalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
