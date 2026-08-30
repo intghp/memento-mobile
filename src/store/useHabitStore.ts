@@ -1,10 +1,13 @@
 import { create } from 'zustand';
 import { db } from '../database/db';
-import { Habit } from '../types';
+import { Habit, HabitLog } from '../types';
 
 interface HabitStore {
   habits: Habit[];
+  habitLogs: HabitLog[];
   fetchHabits: (date: string) => Promise<void>;
+  fetchHabitLogs: (habitId: number) => Promise<void>;
+  clearHabitLogs: () => void;
   addHabit: (habit: Omit<Habit, 'id' | 'log_id' | 'is_completed' | 'is_skipped' | 'amount_completed'>, currentDate: string) => Promise<void>;
   updateHabit: (habitId: number, habitData: Partial<Habit>, currentDate: string) => Promise<void>;
   toggleHabitStatus: (habitId: number, date: string, currentCompleted?: number, currentSkipped?: number) => Promise<void>;
@@ -14,6 +17,10 @@ interface HabitStore {
 
 export const useHabitStore = create<HabitStore>((set, get) => ({
   habits: [],
+  habitLogs: [],
+
+  // Limpa os logs ao fechar o modal do Heatmap
+  clearHabitLogs: () => set({ habitLogs: [] }),
 
   // Busca todos os hábitos e cruza com os Logs do dia selecionado
   fetchHabits: async (date) => {
@@ -38,6 +45,19 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
       set({ habits: result });
     } catch (error) {
       console.error('Erro ao buscar hábitos:', error);
+    }
+  },
+
+  // Busca o histórico completo de um único hábito para desenhar o Heatmap
+  fetchHabitLogs: async (habitId) => {
+    try {
+      const result = await db.getAllAsync<HabitLog>(
+        'SELECT target_date, is_completed, is_skipped, amount_completed FROM habit_logs WHERE habit_id = ?',
+        [habitId]
+      );
+      set({ habitLogs: result });
+    } catch (error) {
+      console.error('Erro ao buscar logs do hábito:', error);
     }
   },
 
