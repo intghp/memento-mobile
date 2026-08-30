@@ -1,7 +1,8 @@
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
+import { StatusBar } from 'expo-status-bar'; // <-- Adicionado aqui
 import * as SystemUI from 'expo-system-ui';
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { initDB } from '../src/database/db';
 
 // Impede que a tela de carregamento (Splash Screen) suma sozinha
@@ -34,6 +35,11 @@ export default function RootLayout() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false }} />
+    <>
+      <StatusBar style="light" />
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="(home)" />
+      </Stack>
+    </>
   );
 }
