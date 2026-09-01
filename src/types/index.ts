@@ -30,3 +30,9 @@ export interface HabitLog {
   is_skipped: number;
   amount_completed: number | null;
 }
+
+export interface Note {
+  id: number;
+  date: string;
+  content: string;
+}
