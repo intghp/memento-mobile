@@ -5,6 +5,7 @@ export const db = SQLite.openDatabaseSync('memento.db');
 
 export const initDB = async () => {
   try {
+
     // execAsync para rodar múltiplos comandos de criação (DDL) de uma vez
     await db.execAsync(`
       PRAGMA journal_mode = WAL;
@@ -19,14 +20,7 @@ export const initDB = async () => {
         position INTEGER DEFAULT 0
       );
 
-      -- 2. TABELA DE NOTAS DIÁRIAS (DAILY NOTES)
-      CREATE TABLE IF NOT EXISTS notes (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        content TEXT DEFAULT '',
-        target_date TEXT NOT NULL UNIQUE
-      );
-
-      -- 3. TABELA DE HÁBITOS (HABITS)
+      -- 2. TABELA DE HÁBITOS (HABITS)
       CREATE TABLE IF NOT EXISTS habits (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         name TEXT NOT NULL,
@@ -41,7 +35,7 @@ export const initDB = async () => {
         created_at TEXT DEFAULT CURRENT_TIMESTAMP
       );
 
-      -- 4. TABELA DE LOGS DOS HÁBITOS (HABIT LOGS)
+      -- 3. TABELA DE LOGS DOS HÁBITOS (HABIT LOGS)
       CREATE TABLE IF NOT EXISTS habit_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         habit_id INTEGER NOT NULL,
@@ -51,12 +45,15 @@ export const initDB = async () => {
         amount_completed REAL,
         FOREIGN KEY (habit_id) REFERENCES habits (id) ON DELETE CASCADE
       );
+
+      -- 4. TABELA DE NOTAS DIÁRIAS (DAILY NOTES)
+      CREATE TABLE IF NOT EXISTS notes (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        date TEXT UNIQUE,
+        content TEXT
+      );
     `);
 
-    // -- Migração --
-    try { await db.execAsync(`ALTER TABLE habits ADD COLUMN color TEXT DEFAULT '#00E676';`); } catch (e) {}
-    try { await db.execAsync(`ALTER TABLE habits ADD COLUMN icon TEXT DEFAULT 'Activity';`); } catch (e) {}
-    
     console.log('✅ Banco de dados Memento inicializado com sucesso!');
   } catch (error) {
     console.error('❌ Erro ao inicializar o banco de dados:', error);
