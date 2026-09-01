@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { Platform, StatusBar, StyleSheet } from 'react-native';
 
 export const styles = StyleSheet.create({
   container: {
@@ -266,6 +266,7 @@ export const styles = StyleSheet.create({
   fullScreenModalContent: {
     flex: 1,
     backgroundColor: '#121212',
+    paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 44,
   },
   fullScreenHeader: {
     flexDirection: 'row',

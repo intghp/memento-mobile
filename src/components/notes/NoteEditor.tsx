@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { useDateStore } from '../../store/useDateStore';
 import { useNoteStore } from '../../store/useNoteStore';
 import { styles } from './styles';
@@ -52,15 +52,22 @@ export default function NoteEditor() {
         <Text style={styles.status}>{saveStatus}</Text>
       </View>
       
-      <TextInput
-        style={styles.input}
-        multiline
-        placeholder="Como foi o seu dia? O que você está sentindo?..."
-        placeholderTextColor="#555"
-        value={text}
-        onChangeText={setText}
-        textAlignVertical="top"
-      />
+      {/* ScrollView captura os toques verticais e libera os horizontais para a navegação */}
+      <ScrollView 
+        contentContainerStyle={{ flexGrow: 1 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <TextInput
+          style={styles.input}
+          multiline
+          placeholder="Como foi o seu dia? O que você está sentindo?..."
+          placeholderTextColor="#555"
+          value={text}
+          onChangeText={setText}
+          textAlignVertical="top"
+        />
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

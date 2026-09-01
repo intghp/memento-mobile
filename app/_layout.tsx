@@ -22,7 +22,9 @@ export default function RootLayout() {
       } finally {
         // 2. Quando o banco estiver pronto, o app é liberado
         setDbReady(true);
-        await SplashScreen.hideAsync();
+        setTimeout(() => {
+          SplashScreen.hideAsync();
+        }, 500);
       }
     }
 
