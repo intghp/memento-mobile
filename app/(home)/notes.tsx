@@ -1,11 +1,11 @@
 import React from 'react';
 import { StyleSheet, View } from 'react-native';
-import NotesList from '../../src/components/notes/NotesList';
+import NoteEditor from '../../src/components/notes/NoteEditor';
 
 export default function NotesScreen() {
   return (
     <View style={styles.container}>
-      <NotesList />
+      <NoteEditor />
     </View>
   );
 }
