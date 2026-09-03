@@ -1,6 +1,6 @@
 import { createMaterialTopTabNavigator } from '@react-navigation/material-top-tabs';
-import { withLayoutContext } from 'expo-router';
-import { LayoutGrid, MoreVertical } from 'lucide-react-native'; // <-- Ícones novos adicionados
+import { useRouter, withLayoutContext } from 'expo-router';
+import { MoreVertical } from 'lucide-react-native';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -22,6 +22,7 @@ const ITEM_WIDTH = SCREEN_WIDTH / VISIBLE_DAYS;
 export default function HomeLayout() {
   const { selectedDate, setSelectedDate } = useDateStore();
   const flatListRef = useRef<FlatList>(null);
+  const router = useRouter();
 
   // 365 dias no histórico
   const days = useMemo(() => {
@@ -102,10 +103,10 @@ export default function HomeLayout() {
         <Text style={styles.appTitle}>Memento</Text>
         
         <View style={styles.appBarActions}>
-          <TouchableOpacity style={styles.iconButton}>
-            <LayoutGrid color="#ffffff" size={24} />
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.iconButton}>
+          <TouchableOpacity 
+            style={styles.iconButton}
+            onPress={() => router.push('/settings')}
+          >
             <MoreVertical color="#ffffff" size={24} />
           </TouchableOpacity>
         </View>
