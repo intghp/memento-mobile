@@ -1,4 +1,6 @@
+import { useSettingsStore } from '@/src/store/useSettingsStore';
 import { format } from 'date-fns';
+import * as Haptics from 'expo-haptics';
 import { Activity, AlertTriangle, Apple, ArrowLeft, Baby, Bed, Bike, Book, BookOpen, Brain, Briefcase, Camera, Car, Check, Circle, Clock, Cloud, Code, Coffee, Compass, Cpu, CreditCard, Crosshair, Droplets, Dumbbell, Feather, Flag, Flame, Gamepad2, Gift, GraduationCap, Guitar, Headphones, Heart, Home, Image, Key, Leaf, Map, Mic, Minus, Monitor, Moon, Music, Palette, PenTool, Pill, Plane, Plus, Scissors, Shield, ShoppingBag, Smartphone, Smile, Speaker, Star, Sun, Target, Thermometer, Trash, Trash2, Trophy, Truck, Tv, Umbrella, Utensils, Video, Watch, Wifi, Wind, X, XCircle } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, FlatList, KeyboardAvoidingView, Modal, Platform, ScrollView, SectionList, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
@@ -23,6 +25,7 @@ const ICON_MAP: Record<string, any> = {
 
 export default function HabitsList() {
   const { selectedDate } = useDateStore();
+  const { hapticsEnabled } = useSettingsStore();
   const { habits, fetchHabits, fetchHabitLogs, clearHabitLogs, addHabit, updateHabit, toggleHabitStatus, updateHabitProgress, deleteHabit } = useHabitStore();
 
   // Estados do Modal de Adicionar Hábito
@@ -269,6 +272,11 @@ export default function HabitsList() {
                         setProgressHabit(item);
                         setProgressInput(currentAmount > 0 ? currentAmount.toString().replace('.', ',') : '');
                       } else {
+                        
+                        if (hapticsEnabled) {
+                          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+                        }
+                        
                         toggleHabitStatus(item.id, selectedDate, item.is_completed, item.is_skipped);
                       }
                     }}
