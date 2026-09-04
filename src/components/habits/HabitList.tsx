@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import * as Haptics from 'expo-haptics';
 import { Activity, AlertTriangle, Apple, ArrowLeft, Baby, Bed, Bike, Book, BookOpen, Brain, Briefcase, Camera, Car, Check, Circle, Clock, Cloud, Code, Coffee, Compass, Cpu, CreditCard, Crosshair, Droplets, Dumbbell, Feather, Flag, Flame, Gamepad2, Gift, GraduationCap, Guitar, Headphones, Heart, Home, Image, Key, Leaf, Map, Mic, Minus, Monitor, Moon, Music, Palette, PenTool, Pill, Plane, Plus, Scissors, Shield, ShoppingBag, Smartphone, Smile, Speaker, Star, Sun, Target, Thermometer, Trash, Trash2, Trophy, Truck, Tv, Umbrella, Utensils, Video, Watch, Wifi, Wind, X, XCircle } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Animated, FlatList, KeyboardAvoidingView, Modal, Platform, ScrollView, SectionList, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useDateStore } from '../../store/useDateStore';
 import { useHabitStore } from '../../store/useHabitStore';
@@ -24,6 +25,7 @@ const ICON_MAP: Record<string, any> = {
 };
 
 export default function HabitsList() {
+  const { t } = useTranslation();
   const { selectedDate } = useDateStore();
   const { hapticsEnabled } = useSettingsStore();
   const { habits, fetchHabits, fetchHabitLogs, clearHabitLogs, addHabit, updateHabit, toggleHabitStatus, updateHabitProgress, deleteHabit } = useHabitStore();
@@ -60,6 +62,9 @@ export default function HabitsList() {
   const isPastDay = selectedDate < todayDateString;
 
   const SHIFTS = ['Qualquer', 'Manhã', 'Tarde', 'Noite'];
+  
+  const daysList = t('habit_modal.days', { returnObjects: true });
+  const daysArray = Array.isArray(daysList) ? daysList : ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
   // 1. Sempre que a data (Calendário) mudar, busca os hábitos atualizados
   useEffect(() => {
@@ -95,10 +100,10 @@ export default function HabitsList() {
     const noite = habits.filter(h => h.shift === 'Noite');
 
     const sections = [];
-    if (qualquer.length > 0) sections.push({ title: '✨ Geral', data: qualquer });
-    if (manha.length > 0) sections.push({ title: '☀️ Manhã', data: manha });
-    if (tarde.length > 0) sections.push({ title: '🌤️ Tarde', data: tarde });
-    if (noite.length > 0) sections.push({ title: '🌙 Noite', data: noite });
+    if (qualquer.length > 0) sections.push({ title: t('habit_list.sections.general'), data: qualquer });
+    if (manha.length > 0) sections.push({ title: t('habit_list.sections.morning'), data: manha });
+    if (tarde.length > 0) sections.push({ title: t('habit_list.sections.afternoon'), data: tarde });
+    if (noite.length > 0) sections.push({ title: t('habit_list.sections.night'), data: noite });
 
     return sections;
   };
@@ -195,8 +200,8 @@ export default function HabitsList() {
         {/* LISTA DE HÁBITOS (Se vazia, mostra mensagem, se não, mostra as seções) */}
         {sections.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Nenhum hábito para hoje.</Text>
-            <Text style={styles.emptySubText}>Clique no + para criar ou editar sua jornada.</Text>
+            <Text style={styles.emptyText}>{t('habit_list.empty_title')}</Text>
+            <Text style={styles.emptySubText}>{t('habit_list.empty_subtitle')}</Text>
           </View>
         ) : (
           <SectionList
@@ -332,9 +337,9 @@ export default function HabitsList() {
       <Modal visible={!!progressHabit} transparent={true} animationType="fade" onRequestClose={() => setProgressHabit(null)}>
         <KeyboardAvoidingView style={styles.progressModalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.progressModalContent}>
-            <Text style={styles.progressModalTitle}>Registrar Progresso</Text>
+            <Text style={styles.progressModalTitle}>{t('progress_modal.title')}</Text>
             <Text style={styles.progressModalSub}>
-              Meta: {progressHabit?.goal_amount} {progressHabit?.unit}
+              {t('progress_modal.goal')} {progressHabit?.goal_amount} {progressHabit?.unit}
             </Text>
 
             <View style={styles.progressInputRow}>
@@ -352,14 +357,14 @@ export default function HabitsList() {
 
             <View style={styles.progressButtons}>
               <TouchableOpacity style={styles.progressCancelBtn} onPress={() => setProgressHabit(null)}>
-                <Text style={styles.progressCancelText}>Cancelar</Text>
+                <Text style={styles.progressCancelText}>{t('progress_modal.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.progressSaveBtn, { backgroundColor: progressHabit?.color || '#ffffff' }]} onPress={() => {
                 const amount = parseFloat(progressInput.replace(',', '.')) || 0;
                 updateHabitProgress(progressHabit!.id, selectedDate, amount, progressHabit!.goal_amount);
                 setProgressHabit(null);
               }}>
-                <Text style={styles.progressSaveText}>Salvar</Text>
+                <Text style={styles.progressSaveText}>{t('progress_modal.save')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -372,17 +377,17 @@ export default function HabitsList() {
             <View style={styles.deleteModalHeader}>
               <AlertTriangle color="#D9534F" size={36} />
               <View style={styles.deleteModalTextContainer}>
-                <Text style={styles.deleteModalTitle}>EXCLUIR HÁBITO</Text>
-                <Text style={styles.deleteModalText}>Esta ação não pode ser desfeita.</Text>
+                <Text style={styles.deleteModalTitle}>{t('delete_modal.title')}</Text>
+                <Text style={styles.deleteModalText}>{t('delete_modal.warning')}</Text>
               </View>
             </View>
             <View style={styles.deleteModalDivider} />
             <View style={styles.deleteModalButtons}>
               <TouchableOpacity style={styles.deleteCancelButton} onPress={() => setShowDeleteConfirm(false)}>
-                <Text style={styles.deleteCancelText}>CANCELAR</Text>
+                <Text style={styles.deleteCancelText}>{t('delete_modal.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={styles.deleteConfirmButton} onPress={executeDelete}>
-                <Text style={styles.deleteConfirmText}>EXCLUIR</Text>
+                <Text style={styles.deleteConfirmText}>{t('delete_modal.confirm')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -408,9 +413,9 @@ export default function HabitsList() {
                   <TouchableOpacity onPress={resetModal} style={styles.headerIconButton}>
                     <ArrowLeft color="#fff" size={24} />
                   </TouchableOpacity>
-                  <Text style={styles.fullScreenTitle}>{editingHabitId ? 'Editar hábito' : 'Novo hábito'}</Text>
+                  <Text style={styles.fullScreenTitle}>{editingHabitId ? t('habit_modal.edit_habit') : t('habit_modal.new_habit')}</Text>
                   <TouchableOpacity onPress={handleSaveHabit} style={styles.headerTextButton}>
-                    <Text style={styles.headerSaveText}>SALVAR</Text>
+                    <Text style={styles.headerSaveText}>{t('habit_modal.save')}</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -418,14 +423,14 @@ export default function HabitsList() {
                   
                   <View style={styles.formRow}>
                     <View style={styles.inputGroupFlexible}>
-                      <Text style={styles.label}>Nome</Text>
+                      <Text style={styles.label}>{t('habit_modal.name')}</Text>
                       <View style={styles.nameInputContainer}>
                         <TouchableOpacity style={styles.nameIconSelector} onPress={() => setModalStep('icon')}>
                           <SelectedIconComponent color={selectedColor} size={20} />
                         </TouchableOpacity>
                         <TextInput
                           style={styles.nameInput}
-                          placeholder="Nome do hábito..."
+                          placeholder={t('habit_modal.name_placeholder')}
                           placeholderTextColor="#666"
                           value={newHabitName}
                           onChangeText={setNewHabitName}
@@ -434,7 +439,7 @@ export default function HabitsList() {
                     </View>
                     
                     <View style={styles.inputGroupFixed}>
-                      <Text style={styles.label}>Cor</Text>
+                      <Text style={styles.label}>{t('habit_modal.color')}</Text>
                       <TouchableOpacity 
                         style={[styles.colorBox, { backgroundColor: selectedColor }]} 
                         onPress={() => setModalStep('color')}
@@ -443,7 +448,7 @@ export default function HabitsList() {
                   </View>
 
                   <View style={styles.switchRow}>
-                    <Text style={styles.labelSwitch}>Meta quantitativa?</Text>
+                    <Text style={styles.labelSwitch}>{t('habit_modal.quantitative')}</Text>
                     <Switch
                       value={isQuantitative}
                       onValueChange={setIsQuantitative}
@@ -455,7 +460,7 @@ export default function HabitsList() {
                   {isQuantitative && (
                     <View style={styles.formRow}>
                       <View style={styles.inputGroupFlexible}>
-                        <Text style={styles.label}>Meta (ex: 2.5)</Text>
+                        <Text style={styles.label}>{t('habit_modal.goal')}</Text>
                         <View style={styles.pillInputContainer}>
                           <TextInput
                             style={styles.pillInput}
@@ -469,11 +474,11 @@ export default function HabitsList() {
                       </View>
                       
                       <View style={styles.inputGroupFlexible}>
-                        <Text style={styles.label}>Unidade (ex: L)</Text>
+                        <Text style={styles.label}>{t('habit_modal.unit')}</Text>
                         <View style={styles.pillInputContainer}>
                           <TextInput
                             style={styles.pillInput}
-                            placeholder="Litros, km..."
+                            placeholder={t('habit_modal.unit_placeholder')}
                             placeholderTextColor="#666"
                             value={unit}
                             onChangeText={setUnit}
@@ -484,7 +489,7 @@ export default function HabitsList() {
                   )}
 
                   <View style={styles.frequencyHeader}>
-                    <Text style={styles.label}>Frequência</Text>
+                    <Text style={styles.label}>{t('habit_modal.frequency')}</Text>
                     <TouchableOpacity onPress={() => {
                       const nextStatus = !isEveryday;
                       setIsEveryday(nextStatus);
@@ -495,13 +500,13 @@ export default function HabitsList() {
                       }
                     }}>
                       <Text style={[styles.frequencyToggle, { color: selectedColor }]}>
-                        {isEveryday ? 'Todo dia' : 'Dias específicos'}
+                        {isEveryday ? t('habit_modal.everyday') : t('habit_modal.specific_days')}
                       </Text>
                     </TouchableOpacity>
                   </View>
                   
                   <View style={styles.minimalDaysRow}>
-                    {['D', 'S', 'T', 'Q', 'Q', 'S', 'S'].map((day, index) => {
+                    {daysArray.map((day, index) => {
                       const isActive = activeDays.includes(index);
                       return (
                         <TouchableOpacity 
@@ -534,7 +539,7 @@ export default function HabitsList() {
                     })}
                   </View>
 
-                  <Text style={styles.label}>Turno</Text>
+                  <Text style={styles.label}>{t('habit_modal.shift')}</Text>
                   <View style={styles.diRadioWrap}>
                     <View 
                       style={styles.diRadioIsland}
@@ -564,7 +569,7 @@ export default function HabitsList() {
                           onPress={() => setNewHabitShift(shift)}
                         >
                           <Text style={[styles.diRadioBtnText, newHabitShift === shift && styles.diRadioBtnTextActive]}>
-                            {shift}
+                            {t(`habit_modal.shifts.${shift}`)}
                           </Text>
                         </TouchableOpacity>
                       ))}
@@ -574,7 +579,7 @@ export default function HabitsList() {
                   {editingHabitId && (
                     <TouchableOpacity style={styles.deleteHabitButton} onPress={() => setShowDeleteConfirm(true)}>
                       <Trash2 color="#FF5252" size={20} />
-                      <Text style={styles.deleteHabitText}>Excluir hábito</Text>
+                      <Text style={styles.deleteHabitText}>{t('habit_modal.delete')}</Text>
                     </TouchableOpacity>
                   )}
                   
@@ -588,7 +593,7 @@ export default function HabitsList() {
                   <TouchableOpacity onPress={() => setModalStep('main')} style={styles.headerIconButton}>
                     <ArrowLeft color="#fff" size={24} />
                   </TouchableOpacity>
-                  <Text style={styles.fullScreenTitle}>Cor</Text>
+                  <Text style={styles.fullScreenTitle}>{t('habit_modal.color_title')}</Text>
                   <View style={{ width: 60 }} /> 
                 </View>
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.fullScreenScrollContent}>
@@ -614,7 +619,7 @@ export default function HabitsList() {
                   <TouchableOpacity onPress={() => setModalStep('main')} style={styles.headerIconButton}>
                     <ArrowLeft color="#fff" size={24} />
                   </TouchableOpacity>
-                  <Text style={styles.fullScreenTitle}>Ícone</Text>
+                  <Text style={styles.fullScreenTitle}>{t('habit_modal.icon_title')}</Text>
                   <View style={{ width: 60 }} /> 
                 </View>
                 <FlatList
