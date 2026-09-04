@@ -1,0 +1,89 @@
+{
+  "settings": {
+    "title": "Settings",
+    "general": "Reminders & Alerts",
+    "daily_reminders": "Daily Reminders",
+    "reminder_time": "Reminder Time",
+    "haptics": "Haptic Feedback",
+    "appearance": "Appearance",
+    "theme": "App Theme",
+    "language": "Language",
+    "data_backup": "Data & Backup",
+    "export_backup": "Export Full Backup",
+    "import_backup": "Import Backup",
+    "export_csv": "Export as Spreadsheet (CSV)",
+    "delete_all": "Delete All Data",
+    "info": "Information",
+    "about": "About Memento",
+    "version": "Memento App Version"
+  },
+  "home": {
+    "tasks": "Tasks",
+    "habits": "Habits",
+    "notes": "Notes",
+    "week_days": ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
+  },
+  "habit_list": {
+    "empty_title": "No habits for today.",
+    "empty_subtitle": "Tap + to create or edit your journey.",
+    "sections": {
+      "general": "✨ General",
+      "morning": "☀️ Morning",
+      "afternoon": "🌤️ Afternoon",
+      "night": "🌙 Night"
+    }
+  },
+  "habit_modal": {
+    "new_habit": "New habit",
+    "edit_habit": "Edit habit",
+    "save": "SAVE",
+    "name": "Name",
+    "name_placeholder": "Habit name...",
+    "color": "Color",
+    "quantitative": "Quantitative goal?",
+    "goal": "Goal (ex: 2.5)",
+    "unit": "Unit (ex: L)",
+    "unit_placeholder": "Liters, km...",
+    "frequency": "Frequency",
+    "everyday": "Everyday",
+    "specific_days": "Specific days",
+    "days": ["S", "M", "T", "W", "T", "F", "S"],
+    "shift": "Shift",
+    "shifts": {
+      "Qualquer": "Any",
+      "Manhã": "Morning",
+      "Tarde": "Afternoon",
+      "Noite": "Night"
+    },
+    "delete": "Delete habit",
+    "color_title": "Color",
+    "icon_title": "Icon"
+  },
+  "progress_modal": {
+    "title": "Log Progress",
+    "goal": "Goal:",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "delete_modal": {
+    "title": "DELETE HABIT",
+    "warning": "This action cannot be undone.",
+    "cancel": "CANCEL",
+    "confirm": "DELETE"
+  },
+  "tasks": {
+    "placeholder": "Add new task...",
+    "empty": "No tasks for this day.",
+    "clear_completed": "Clear completed"
+  },
+  "notes": {
+    "title": "Journal",
+    "placeholder": "How was your day? What are you feeling?...",
+    "saving": "Saving...",
+    "saved": "Saved ✔️"
+  },
+  "heatmap": {
+    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  }
+}

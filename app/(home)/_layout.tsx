@@ -6,13 +6,12 @@ import { Dimensions, FlatList, StyleSheet, Text, TouchableOpacity, View } from '
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { eachDayOfInterval, format, parseISO, subDays } from 'date-fns';
-import { ptBR } from 'date-fns/locale';
+import { enUS, ptBR } from 'date-fns/locale';
+import { useTranslation } from 'react-i18next';
 import { useDateStore } from '../../src/store/useDateStore';
 
 const { Navigator } = createMaterialTopTabNavigator();
 const TopTabs = withLayoutContext(Navigator);
-
-const DIAS_SEMANA = ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 
 // Divide o calendário em 7 dias
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -23,6 +22,11 @@ export default function HomeLayout() {
   const { selectedDate, setSelectedDate } = useDateStore();
   const flatListRef = useRef<FlatList>(null);
   const router = useRouter();
+  const { t, i18n } = useTranslation();
+
+  const dateLocale = i18n.language.startsWith('pt') ? ptBR : enUS;
+  const weekDaysArray = t('home.week_days', { returnObjects: true });
+  const DIAS_SEMANA = Array.isArray(weekDaysArray) ? weekDaysArray : ['DOM', 'SEG', 'TER', 'QUA', 'QUI', 'SEX', 'SÁB'];
 
   // 365 dias no histórico
   const days = useMemo(() => {
@@ -34,8 +38,12 @@ export default function HomeLayout() {
 
   // Letreiro do mês com a data atual selecionada
   const [displayedMonth, setDisplayedMonth] = useState(() => {
-    return format(parseISO(selectedDate), 'MMMM yyyy', { locale: ptBR }).toUpperCase();
+    return format(parseISO(selectedDate), 'MMMM yyyy', { locale: dateLocale }).toUpperCase();
   });
+
+  useEffect(() => {
+    setDisplayedMonth(format(parseISO(selectedDate), 'MMMM yyyy', { locale: dateLocale }).toUpperCase());
+  }, [i18n.language, selectedDate, dateLocale]);
 
   // Quando o app abre, rola para o último dia (Hoje) e ancora na direita
   useEffect(() => {
@@ -53,7 +61,7 @@ export default function HomeLayout() {
       // Pega o item que está bem no meio da visualização da tela
       const middleItem = viewableItems[Math.floor(viewableItems.length / 2)];
       if (middleItem && middleItem.item) {
-        const monthName = format(middleItem.item, 'MMMM yyyy', { locale: ptBR }).toUpperCase();
+        const monthName = format(middleItem.item, 'MMMM yyyy', { locale: dateLocale }).toUpperCase();
         setDisplayedMonth(monthName);
       }
     }
@@ -145,9 +153,9 @@ export default function HomeLayout() {
           tabBarLabelStyle: { fontSize: 13, fontWeight: 'bold' },
         }}
       >
-        <TopTabs.Screen name="tasks" options={{ title: 'Tarefas' }} />
-        <TopTabs.Screen name="index" options={{ title: 'Hábitos' }} />
-        <TopTabs.Screen name="notes" options={{ title: 'Notas' }} />
+        <TopTabs.Screen name="tasks" options={{ title: t('home.tasks') }} />
+        <TopTabs.Screen name="index" options={{ title: t('home.habits') }} />
+        <TopTabs.Screen name="notes" options={{ title: t('home.notes') }} />
       </TopTabs>
 
     </SafeAreaView>

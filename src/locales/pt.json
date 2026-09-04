@@ -1,0 +1,89 @@
+{
+  "settings": {
+    "title": "Configurações",
+    "general": "Lembretes e Avisos",
+    "daily_reminders": "Lembretes Diários",
+    "reminder_time": "Horário do Lembrete",
+    "haptics": "Vibração ao Completar",
+    "appearance": "Aparência",
+    "theme": "Tema do Aplicativo",
+    "language": "Idioma",
+    "data_backup": "Dados e Backup",
+    "export_backup": "Exportar Backup Completo",
+    "import_backup": "Importar Backup",
+    "export_csv": "Exportar como Planilha (CSV)",
+    "delete_all": "Apagar Todos os Dados",
+    "info": "Informações",
+    "about": "Sobre o Memento",
+    "version": "Memento App Versão"
+  },
+  "home": {
+    "tasks": "Tarefas",
+    "habits": "Hábitos",
+    "notes": "Notas",
+    "week_days": ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"]
+  },
+  "habit_list": {
+    "empty_title": "Nenhum hábito para hoje.",
+    "empty_subtitle": "Clique no + para criar ou editar sua jornada.",
+    "sections": {
+      "general": "✨ Geral",
+      "morning": "☀️ Manhã",
+      "afternoon": "🌤️ Tarde",
+      "night": "🌙 Noite"
+    }
+  },
+  "habit_modal": {
+    "new_habit": "Novo hábito",
+    "edit_habit": "Editar hábito",
+    "save": "SALVAR",
+    "name": "Nome",
+    "name_placeholder": "Nome do hábito...",
+    "color": "Cor",
+    "quantitative": "Meta quantitativa?",
+    "goal": "Meta (ex: 2.5)",
+    "unit": "Unidade (ex: L)",
+    "unit_placeholder": "Litros, km...",
+    "frequency": "Frequência",
+    "everyday": "Todo dia",
+    "specific_days": "Dias específicos",
+    "days": ["D", "S", "T", "Q", "Q", "S", "S"],
+    "shift": "Turno",
+    "shifts": {
+      "Qualquer": "Qualquer",
+      "Manhã": "Manhã",
+      "Tarde": "Tarde",
+      "Noite": "Noite"
+    },
+    "delete": "Excluir hábito",
+    "color_title": "Cor",
+    "icon_title": "Ícone"
+  },
+  "progress_modal": {
+    "title": "Registrar Progresso",
+    "goal": "Meta:",
+    "cancel": "Cancelar",
+    "save": "Salvar"
+  },
+  "delete_modal": {
+    "title": "EXCLUIR HÁBITO",
+    "warning": "Esta ação não pode ser desfeita.",
+    "cancel": "CANCELAR",
+    "confirm": "EXCLUIR"
+  },
+  "tasks": {
+    "placeholder": "Adicionar nova tarefa...",
+    "empty": "Nenhuma tarefa para este dia.",
+    "clear_completed": "Limpar concluídas"
+  },
+  "notes": {
+    "title": "Diário",
+    "placeholder": "Como foi o seu dia? O que você está sentindo?...",
+    "saving": "Salvando...",
+    "saved": "Salvo ✔️"
+  },
+  "heatmap": {
+    "months": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+    "days": ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+  }
+}
