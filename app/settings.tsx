@@ -1,21 +1,37 @@
 import { useRouter } from 'expo-router';
 import {
   ArrowLeft, Bell, ChevronRight, Clock,
-  DownloadCloud, FileText, Info, Moon,
+  DownloadCloud, FileText, Globe, Info, Moon,
   Smartphone, Trash2, UploadCloud
 } from 'lucide-react-native';
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SUPPORTED_LANGUAGES } from '../src/locales';
 import { useSettingsStore } from '../src/store/useSettingsStore';
 
 export default function SettingsScreen() {
   const { 
     notificationsEnabled, setNotificationsEnabled,
     hapticsEnabled, setHapticsEnabled,
-    notificationTime 
+    notificationTime,
+    setLanguage
   } = useSettingsStore();
   const router = useRouter();
+  
+  // Tradiução
+  const { t, i18n } = useTranslation();
+
+  // Função para trocar idioma no clique
+  const toggleLanguage = () => {
+    const langCodes = Object.keys(SUPPORTED_LANGUAGES);
+    const currentIndex = langCodes.indexOf(i18n.language);
+    const nextLang = langCodes[(currentIndex + 1) % langCodes.length] || 'en';
+    
+    i18n.changeLanguage(nextLang);
+    setLanguage(nextLang);
+  };
 
   // Componente reutilizável para cada linha de configuração
   const SettingItem = ({ icon: Icon, title, value, isToggle, toggleValue, onToggle, onPress, isDestructive, disabled }: any) => (
@@ -57,18 +73,18 @@ export default function SettingsScreen() {
         <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
           <ArrowLeft color="#ffffff" size={24} />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Configurações</Text>
+        <Text style={styles.headerTitle}>{t('settings.title')}</Text>
         <View style={{ width: 24 }} />
       </View>
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
         {/* GERAL */}
-        <Text style={styles.sectionLabel}>Lembretes e Avisos</Text>
+        <Text style={styles.sectionLabel}>{t('settings.general')}</Text>
         
         <SettingItem 
           icon={Bell} 
-          title="Lembretes Diários" 
+          title={t('settings.daily_reminders')} 
           isToggle 
           toggleValue={notificationsEnabled}
           onToggle={setNotificationsEnabled}
@@ -78,15 +94,15 @@ export default function SettingsScreen() {
         {notificationsEnabled && (
           <SettingItem 
             icon={Clock} 
-            title="Horário do Lembrete" 
-            value="20:00" 
+            title={t('settings.reminder_time')} 
+            value={notificationTime} 
             onPress={() => console.log('Abrir seletor de horário')}
           />
         )}
 
         <SettingItem 
           icon={Smartphone} 
-          title="Vibração ao Completar Hábito" 
+          title={t('settings.haptics')} 
           isToggle 
           toggleValue={hapticsEnabled}
           onToggle={setHapticsEnabled}
@@ -94,54 +110,60 @@ export default function SettingsScreen() {
 
         <View style={styles.sectionDivider} />
 
-        {/* APARÊNCIA */}
-        <Text style={styles.sectionLabel}>Aparência</Text>
+        <Text style={styles.sectionLabel}>{t('settings.appearance')}</Text>
+
+        {/* BOTÃO QUE TROCA DE IDIOMA */}
+        <SettingItem 
+          icon={Globe} 
+          title={t('settings.language')} 
+          value={SUPPORTED_LANGUAGES[i18n.language] || SUPPORTED_LANGUAGES['en']} 
+          onPress={toggleLanguage}
+        />
+
         <SettingItem 
           icon={Moon} 
-          title="Tema do Aplicativo" 
-          value="Escuro" 
+          title={t('settings.theme')} 
+          value="Dark" 
           onPress={() => console.log('Abrir opções: Claro, Escuro, Sistema')}
         />
 
         <View style={styles.sectionDivider} />
 
-        {/* DADOS E BACKUP */}
-        <Text style={styles.sectionLabel}>Dados e Backup</Text>
+        <Text style={styles.sectionLabel}>{t('settings.data_backup')}</Text>
         
         <SettingItem 
           icon={UploadCloud} 
-          title="Exportar Backup Completo" 
+          title={t('settings.export_backup')} 
           onPress={() => console.log('Gerar arquivo de backup para restaurar depois')}
         />
         <SettingItem 
           icon={DownloadCloud} 
-          title="Importar Backup" 
+          title={t('settings.import_backup')} 
           onPress={() => console.log('Restaurar dados de um arquivo')}
         />
         <SettingItem 
           icon={FileText} 
-          title="Exportar como Planilha (CSV)" 
+          title={t('settings.export_csv')} 
           onPress={() => console.log('Gerar CSV para o Excel')}
         />
         <SettingItem 
           icon={Trash2} 
-          title="Apagar Todos os Dados" 
+          title={t('settings.delete_all')} 
           isDestructive
           onPress={() => console.log('Alerta de exclusão extrema')}
         />
 
         <View style={styles.sectionDivider} />
 
-        {/* SOBRE */}
-        <Text style={styles.sectionLabel}>Informações</Text>
+        <Text style={styles.sectionLabel}>{t('settings.info')}</Text>
         
         <SettingItem 
           icon={Info} 
-          title="Sobre o Memento" 
+          title={t('settings.about')} 
           onPress={() => console.log('Abrir tela Sobre')}
         />
         
-        <Text style={styles.versionText}>Memento App Versão 1.0.0</Text>
+        <Text style={styles.versionText}>{t('settings.version')} 1.0.0</Text>
 
       </ScrollView>
     </SafeAreaView>
