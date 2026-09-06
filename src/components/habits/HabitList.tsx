@@ -57,6 +57,7 @@ export default function HabitsList() {
   const fadeAnim = useRef(new Animated.Value(1)).current;
   const shiftAnim = useRef(new Animated.Value(0)).current;
   const [segmentWidth, setSegmentWidth] = useState(0);
+  const isFirstRender = useRef(true);
 
   const todayDateString = format(new Date(), 'yyyy-MM-dd');
   const isPastDay = selectedDate < todayDateString;
@@ -68,6 +69,11 @@ export default function HabitsList() {
 
   // 1. Sempre que a data (Calendário) mudar, busca os hábitos atualizados
   useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+
     Animated.timing(fadeAnim, {
       toValue: 0,
       duration: 50,
@@ -197,13 +203,7 @@ export default function HabitsList() {
     <View style={styles.container}>
       
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-        {/* LISTA DE HÁBITOS (Se vazia, mostra mensagem, se não, mostra as seções) */}
-        {sections.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>{t('habit_list.empty_title')}</Text>
-            <Text style={styles.emptySubText}>{t('habit_list.empty_subtitle')}</Text>
-          </View>
-        ) : (
+        {/* LISTA DE HÁBITOS*/}
           <SectionList
             sections={sections}
             keyExtractor={(item) => item.id.toString()}
@@ -314,7 +314,6 @@ export default function HabitsList() {
               );
             }}
           />
-        )}
       </Animated.View>
 
       {/* BOTÃO FLUTUANTE DE ADICIONAR */}
