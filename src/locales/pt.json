@@ -15,7 +15,17 @@
     "delete_all": "Apagar Todos os Dados",
     "info": "Informações",
     "about": "Sobre o Memento",
-    "version": "Memento App Versão"
+    "version": "Memento App Versão",
+    "error": "Erro",
+    "warning": "Atenção",
+    "success": "Sucesso",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "export_error": "Não foi possível exportar o backup.",
+    "invalid_file": "Por favor, selecione um arquivo de backup válido (.json).",
+    "import_warning": "Isso vai apagar seus dados atuais e substituir pelo backup. Tem certeza?",
+    "import_success": "Backup restaurado com sucesso!",
+    "import_error": "Não foi possível importar o backup."
   },
   "home": {
     "tasks": "Tarefas",

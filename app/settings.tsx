@@ -1,8 +1,10 @@
 import { useRouter } from 'expo-router';
 import {
   ArrowLeft, Bell, ChevronRight, Clock,
-  DownloadCloud, FileText, Globe, Info, Moon,
-  Smartphone, Trash2, UploadCloud
+  DownloadCloud,
+  Globe, Info, Moon,
+  Smartphone,
+  UploadCloud
 } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
@@ -10,6 +12,7 @@ import { ScrollView, StyleSheet, Switch, Text, TouchableOpacity, View } from 're
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { SUPPORTED_LANGUAGES } from '../src/locales';
 import { useSettingsStore } from '../src/store/useSettingsStore';
+import { exportBackup, importBackup } from '../src/utils/backup';
 
 export default function SettingsScreen() {
   const { 
@@ -134,23 +137,12 @@ export default function SettingsScreen() {
         <SettingItem 
           icon={UploadCloud} 
           title={t('settings.export_backup')} 
-          onPress={() => console.log('Gerar arquivo de backup para restaurar depois')}
+          onPress={() => exportBackup(t)}
         />
         <SettingItem 
           icon={DownloadCloud} 
           title={t('settings.import_backup')} 
-          onPress={() => console.log('Restaurar dados de um arquivo')}
-        />
-        <SettingItem 
-          icon={FileText} 
-          title={t('settings.export_csv')} 
-          onPress={() => console.log('Gerar CSV para o Excel')}
-        />
-        <SettingItem 
-          icon={Trash2} 
-          title={t('settings.delete_all')} 
-          isDestructive
-          onPress={() => console.log('Alerta de exclusão extrema')}
+          onPress={() => importBackup(t)}
         />
 
         <View style={styles.sectionDivider} />
