@@ -2,9 +2,6 @@
   "settings": {
     "title": "Configurações",
     "general": "Lembretes e Avisos",
-    "daily_reminders": "Lembretes Diários",
-    "reminder_time": "Horário do Lembrete",
-    "haptics": "Vibração ao Completar",
     "appearance": "Aparência",
     "theme": "Tema do Aplicativo",
     "language": "Idioma",

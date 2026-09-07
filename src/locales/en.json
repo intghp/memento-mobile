@@ -1,10 +1,6 @@
 {
   "settings": {
     "title": "Settings",
-    "general": "Reminders & Alerts",
-    "daily_reminders": "Daily Reminders",
-    "reminder_time": "Reminder Time",
-    "haptics": "Haptic Feedback",
     "appearance": "Appearance",
     "theme": "App Theme",
     "language": "Language",

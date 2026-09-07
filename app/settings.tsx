@@ -1,9 +1,8 @@
 import { useRouter } from 'expo-router';
 import {
-  ArrowLeft, Bell, ChevronRight, Clock,
+  ArrowLeft, ChevronRight,
   DownloadCloud,
   Globe, Info, Moon,
-  Smartphone,
   UploadCloud
 } from 'lucide-react-native';
 import React from 'react';
@@ -15,12 +14,7 @@ import { useSettingsStore } from '../src/store/useSettingsStore';
 import { exportBackup, importBackup } from '../src/utils/backup';
 
 export default function SettingsScreen() {
-  const { 
-    notificationsEnabled, setNotificationsEnabled,
-    hapticsEnabled, setHapticsEnabled,
-    notificationTime,
-    setLanguage
-  } = useSettingsStore();
+  const { setLanguage } = useSettingsStore();
   const router = useRouter();
   
   // Tradiução
@@ -82,37 +76,7 @@ export default function SettingsScreen() {
 
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
-        {/* GERAL */}
-        <Text style={styles.sectionLabel}>{t('settings.general')}</Text>
-        
-        <SettingItem 
-          icon={Bell} 
-          title={t('settings.daily_reminders')} 
-          isToggle 
-          toggleValue={notificationsEnabled}
-          onToggle={setNotificationsEnabled}
-        />
-        
-        {/* Só mostra a opção de horário se as notificações estiverem ligadas */}
-        {notificationsEnabled && (
-          <SettingItem 
-            icon={Clock} 
-            title={t('settings.reminder_time')} 
-            value={notificationTime} 
-            onPress={() => console.log('Abrir seletor de horário')}
-          />
-        )}
-
-        <SettingItem 
-          icon={Smartphone} 
-          title={t('settings.haptics')} 
-          isToggle 
-          toggleValue={hapticsEnabled}
-          onToggle={setHapticsEnabled}
-        />
-
-        <View style={styles.sectionDivider} />
-
+        {/* APARÊNCIA */}
         <Text style={styles.sectionLabel}>{t('settings.appearance')}</Text>
 
         {/* BOTÃO QUE TROCA DE IDIOMA */}
