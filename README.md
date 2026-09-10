@@ -1,50 +1,69 @@
-# Welcome to your Expo app 👋
+# Memento Mobile
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+> Um ecossistema minimalista e inteligente no seu bolso para rastreamento de hábitos, gestão de tarefas e anotações diárias. Projetado para quem busca consistência sem o ruído visual de aplicativos complexos e com foco total em privacidade.
 
-## Get started
+![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)
+![Stack](https://img.shields.io/badge/Stack-React%20Native%20%7C%20Expo%20%7C%20SQLite-black)
+![Privacy](https://img.shields.io/badge/Privacy-100%25%20Offline-success)
 
-1. Install dependencies
+## ✨ A Filosofia
 
-   ```bash
-   npm install
-   ```
+- **100% Offline e Privado:** Seus dados nunca saem do seu celular. Não há servidores, nuvens ou rastreadores ocultos.
+- **Hábitos Justos:** O sistema não te pune por imprevistos. A consistência é medida de forma realística.
+- **Micro e Macro:** Foque no que importa hoje (Micro) e visualize sua consistência histórica com o mapa de calor anual (Macro).
+- **Sem Poluição:** Banco de dados local otimizado que salva apenas o essencial, mantendo o aplicativo leve e rápido.
 
-2. Start the app
+## 🚀 Principais Funcionalidades
 
-   ```bash
-   npx expo start
-   ```
+### 🎯 Hábitos (Habit Tracker)
+- **Flexibilidade de Metas:** Registre hábitos qualitativos (ex: "Ler") ou quantitativos (ex: "2.5 Litros").
+- **Organização por Turnos:** Separe seus hábitos por Manhã, Tarde ou Noite para manter a rotina limpa.
+- **Visão Macro (Dashboard):** Mapa de calor interativo exibindo seu progresso ao longo do tempo.
 
-In the output, you'll find options to open the app in a
+### ✅ Tarefas Diárias (Task Manager)
+- Interface direta ao ponto para gerenciar o seu dia.
+- Limpeza inteligente de tarefas concluídas com apenas um clique.
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+### 📝 Notas Diárias (Journal)
+- Diário integrado para registrar pensamentos e como foi o seu dia.
+- Salvamento automático otimizado.
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### ⚙️ Controle Total
+- **Backup e Restauração:** Exporte todos os seus dados para um arquivo json.
+- **Multilíngue:** Suporte nativo para Português e Inglês (i18n).
+- **Dark Mode Nativo:** Interface desenhada para conforto visual noturno.
 
-## Get a fresh project
+## 🛠️ Tecnologias
 
-When you're ready, run:
+Todo o ecossistema foi construído com ferramentas modernas para garantir fluidez e confiabilidade:
 
+- **React Native & Expo:** Framework robusto para desenvolvimento mobile cross-platform.
+- **Zustand:** Gerenciamento de estado global leve e otimista.
+- **Expo SQLite:** Banco de dados local ultrarrápido rodando direto no dispositivo.
+- **React i18next:** Motor de internacionalização (Traduções dinâmicas).
+- **Lucide Icons:** Iconografia limpa e consistente.
+
+## 📦 Como Rodar Localmente
+
+Ao contrário da versão para PC, o Memento Mobile não exige um backend rodando em paralelo. Tudo o que você precisa é do Node.js instalado e do aplicativo **Expo Go** no seu celular físico.
+
+**1. Clone o repositório e acesse a pasta**
 ```bash
-npm run reset-project
+git clone https://github.com/seu-usuario/memento-mobile.git
+cd memento-mobile
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+**2. Instale as dependências**
+```bash
+npm install
+```
 
-## Learn more
+**3. Inicie o servidor do Expo**
+```bash
+npx expo start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+**4. Teste no seu celular**
+- Baixe o aplicativo **Expo Go** (disponível na App Store ou Google Play).
+- Abra a câmera do seu celular e escaneie o **QR Code** que apareceu no seu terminal.
+- O aplicativo será compilado e abrirá instantaneamente na sua tela!
