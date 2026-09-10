@@ -1,5 +1,6 @@
 import { CheckCircle2, Circle, Plus, Trash2 } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   Animated,
   FlatList,
@@ -14,6 +15,8 @@ import { useTaskStore } from '../../store/useTaskStore';
 import { styles } from './styles';
 
 export default function TasksList() {
+  const { t } = useTranslation();
+  
   // Conectando aos Stores
   const { selectedDate } = useDateStore();
   const { tasks, fetchTasks, addTask, toggleTask, deleteCompletedTasks } = useTaskStore();
@@ -61,7 +64,7 @@ export default function TasksList() {
         <View style={styles.formContainer}>
           <TextInput
             style={styles.animatedInput}
-            placeholder="Adicionar nova tarefa..."
+            placeholder={t('tasks.placeholder')}
             placeholderTextColor="#666"
             value={newTaskTitle}
             onChangeText={setNewTaskTitle}
@@ -86,7 +89,7 @@ export default function TasksList() {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
         ListEmptyComponent={
-          <Text style={styles.emptyText}>Nenhuma tarefa para este dia.</Text>
+          <Text style={styles.emptyText}>{t('tasks.empty')}</Text>
         }
         renderItem={({ item }) => (
           <View style={[styles.taskCard, item.is_completed && { opacity: 0.6 }]}>
@@ -118,7 +121,7 @@ export default function TasksList() {
           onPress={() => deleteCompletedTasks(selectedDate)}
         >
           <Trash2 color="#888" size={20} />
-          <Text style={styles.clearButtonText}>Limpar concluídas</Text>
+          <Text style={styles.clearButtonText}>{t('tasks.clear_completed')}</Text>
         </TouchableOpacity>
       )}
     </View>

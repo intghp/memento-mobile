@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { KeyboardAvoidingView, Platform, Text, TextInput, View } from 'react-native';
 import { useDateStore } from '../../store/useDateStore';
 import { useNoteStore } from '../../store/useNoteStore';
 import { styles } from './styles';
 
 export default function NoteEditor() {
+  const { t } = useTranslation();
+  
   const { selectedDate } = useDateStore();
   const { currentNote, fetchNote, saveNote } = useNoteStore();
   
@@ -27,12 +30,12 @@ export default function NoteEditor() {
     // Se o texto não mudou, não faz nada
     if (text === currentNote) return;
 
-    setSaveStatus('Salvando...');
+    setSaveStatus(t('notes.saving'));
     
     // Espera o usuário parar de digitar por 1 segundo (1000ms) para salvar
     const timeoutId = setTimeout(async () => {
       await saveNote(selectedDate, text);
-      setSaveStatus('Salvo ✔️');
+      setSaveStatus(t('notes.saved'));
       
       // Apaga o "Salvo ✔️" depois de 2 segundos para manter a tela limpa
       setTimeout(() => setSaveStatus(''), 2000);
@@ -40,7 +43,7 @@ export default function NoteEditor() {
 
     // Se ele voltar a digitar antes de 1 segundo, cancela o salvamento anterior
     return () => clearTimeout(timeoutId);
-  }, [text, selectedDate]);
+  }, [text, selectedDate, t]);
 
   return (
     <KeyboardAvoidingView 
@@ -48,14 +51,14 @@ export default function NoteEditor() {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
       <View style={styles.header}>
-        <Text style={styles.title}>Diário</Text>
+        <Text style={styles.title}>{t('notes.title')}</Text>
         <Text style={styles.status}>{saveStatus}</Text>
       </View>
       
       <TextInput
         style={styles.input}
         multiline
-        placeholder="Como foi o seu dia? O que você está sentindo?..."
+        placeholder={t('notes.placeholder')}
         placeholderTextColor="#555"
         value={text}
         onChangeText={setText}

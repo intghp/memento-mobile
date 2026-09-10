@@ -1,0 +1,105 @@
+{
+  "settings": {
+    "title": "Settings",
+    "general": "General",
+    "appearance": "Appearance",
+    "theme": "App Theme",
+    "language": "Language",
+    "data_backup": "Data & Backup",
+    "export_backup": "Export Full Backup",
+    "import_backup": "Import Backup",
+    "export_csv": "Export as Spreadsheet (CSV)",
+    "delete_all": "Delete All Data",
+    "info": "Information",
+    "about": "About Memento",
+    "version": "Memento App Version"
+  },
+  "home": {
+    "tasks": "Tasks",
+    "habits": "Habits",
+    "notes": "Notes",
+    "week_days": ["SUN", "MON", "TUE", "WED", "THU", "FRI", "SAT"]
+  },
+  "habit_list": {
+    "empty_title": "No habits for today.",
+    "empty_subtitle": "Tap + to create or edit your journey.",
+    "sections": {
+      "general": "✨ General",
+      "morning": "☀️ Morning",
+      "afternoon": "🌤️ Afternoon",
+      "night": "🌙 Night"
+    }
+  },
+  "habit_modal": {
+    "new_habit": "New habit",
+    "edit_habit": "Edit habit",
+    "save": "SAVE",
+    "name": "Name",
+    "name_placeholder": "Habit name...",
+    "color": "Color",
+    "quantitative": "Quantitative goal?",
+    "goal": "Goal (ex: 2.5)",
+    "unit": "Unit (ex: L)",
+    "unit_placeholder": "Liters, km...",
+    "frequency": "Frequency",
+    "everyday": "Everyday",
+    "specific_days": "Specific days",
+    "days": ["S", "M", "T", "W", "T", "F", "S"],
+    "shift": "Shift",
+    "shifts": {
+      "Qualquer": "Any",
+      "Manhã": "Morning",
+      "Tarde": "Afternoon",
+      "Noite": "Night"
+    },
+    "delete": "Delete habit",
+    "color_title": "Color",
+    "icon_title": "Icon"
+  },
+  "progress_modal": {
+    "title": "Log Progress",
+    "goal": "Goal:",
+    "cancel": "Cancel",
+    "save": "Save"
+  },
+  "delete_modal": {
+    "title": "DELETE HABIT",
+    "warning": "This action cannot be undone.",
+    "cancel": "CANCEL",
+    "confirm": "DELETE"
+  },
+  "tasks": {
+    "placeholder": "Add new task...",
+    "empty": "No tasks for this day.",
+    "clear_completed": "Clear completed"
+  },
+  "notes": {
+    "title": "Journal",
+    "placeholder": "How was your day? What are you feeling?...",
+    "saving": "Saving...",
+    "saved": "Saved ✔️"
+  },
+  "heatmap": {
+    "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+    "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  },
+  "about": {
+    "title": "About Memento",
+    "version": "Version",
+    "useful_links": "Useful Links",
+    "desktop_title": "Memento for PC",
+    "desktop_subtitle": "Desktop Version (FastAPI)",
+    "github_title": "Source Code on GitHub",
+    "github_subtitle": "Memento is open-source",
+    "contact_title": "Contact & Suggestions",
+    "contact_subtitle": "Speak directly with the developer",
+    "legal": "Legal",
+    "privacy_title": "Privacy Policy",
+    "privacy_subtitle": "100% offline and secure",
+    "privacy_message": "Memento is a 100% offline app. We do not collect, store on servers, or share any of your data.\n\nYour habits and notes belong exclusively to you and never leave this device.",
+    "opensource_title": "Open Source Licenses",
+    "opensource_subtitle":"Libraries and technologies used",
+    "opensource_message": "We use technologies like React Native, Expo, and Zustand (under the MIT License). All rights to their respective libraries belong to their original creators.",
+    "footer": "Developed by intghp"
+  }
+}

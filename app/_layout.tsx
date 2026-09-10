@@ -4,12 +4,21 @@ import { StatusBar } from 'expo-status-bar'; // <-- Adicionado aqui
 import * as SystemUI from 'expo-system-ui';
 import React, { useEffect, useState } from 'react';
 import { initDB } from '../src/database/db';
+import i18n from '../src/locales';
+import { useSettingsStore } from '../src/store/useSettingsStore';
 
 // Impede que a tela de carregamento (Splash Screen) suma sozinha
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [isDbReady, setDbReady] = useState(false);
+  const { language } = useSettingsStore();
+
+  useEffect(() => {
+    if (language) {
+      i18n.changeLanguage(language);
+    }
+  }, [language]);
 
   useEffect(() => {
     async function prepare() {

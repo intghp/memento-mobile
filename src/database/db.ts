@@ -1,7 +1,7 @@
 import * as SQLite from 'expo-sqlite';
 
 // Cria ou abre o arquivo físico memento.db no armazenamento do celular
-export const db = SQLite.openDatabaseSync('memento.db');
+export const db = SQLite.openDatabaseSync('memento_v2.db');
 
 export const initDB = async () => {
   try {

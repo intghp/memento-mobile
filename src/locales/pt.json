@@ -1,0 +1,115 @@
+{
+  "settings": {
+    "title": "Configurações",
+    "general": "Geral",
+    "appearance": "Aparência",
+    "theme": "Tema do Aplicativo",
+    "language": "Idioma",
+    "data_backup": "Dados e Backup",
+    "export_backup": "Exportar Backup Completo",
+    "import_backup": "Importar Backup",
+    "export_csv": "Exportar como Planilha (CSV)",
+    "delete_all": "Apagar Todos os Dados",
+    "info": "Informações",
+    "about": "Sobre o Memento",
+    "version": "Memento App Versão",
+    "error": "Erro",
+    "warning": "Atenção",
+    "success": "Sucesso",
+    "cancel": "Cancelar",
+    "confirm": "Confirmar",
+    "export_error": "Não foi possível exportar o backup.",
+    "invalid_file": "Por favor, selecione um arquivo de backup válido (.json).",
+    "import_warning": "Isso vai apagar seus dados atuais e substituir pelo backup. Tem certeza?",
+    "import_success": "Backup restaurado com sucesso!",
+    "import_error": "Não foi possível importar o backup."
+  },
+  "home": {
+    "tasks": "Tarefas",
+    "habits": "Hábitos",
+    "notes": "Notas",
+    "week_days": ["DOM", "SEG", "TER", "QUA", "QUI", "SEX", "SÁB"]
+  },
+  "habit_list": {
+    "empty_title": "Nenhum hábito para hoje.",
+    "empty_subtitle": "Clique no + para criar ou editar sua jornada.",
+    "sections": {
+      "general": "✨ Geral",
+      "morning": "☀️ Manhã",
+      "afternoon": "🌤️ Tarde",
+      "night": "🌙 Noite"
+    }
+  },
+  "habit_modal": {
+    "new_habit": "Novo hábito",
+    "edit_habit": "Editar hábito",
+    "save": "SALVAR",
+    "name": "Nome",
+    "name_placeholder": "Nome do hábito...",
+    "color": "Cor",
+    "quantitative": "Meta quantitativa?",
+    "goal": "Meta (ex: 2.5)",
+    "unit": "Unidade (ex: L)",
+    "unit_placeholder": "Litros, km...",
+    "frequency": "Frequência",
+    "everyday": "Todo dia",
+    "specific_days": "Dias específicos",
+    "days": ["D", "S", "T", "Q", "Q", "S", "S"],
+    "shift": "Turno",
+    "shifts": {
+      "Qualquer": "Qualquer",
+      "Manhã": "Manhã",
+      "Tarde": "Tarde",
+      "Noite": "Noite"
+    },
+    "delete": "Excluir hábito",
+    "color_title": "Cor",
+    "icon_title": "Ícone"
+  },
+  "progress_modal": {
+    "title": "Registrar Progresso",
+    "goal": "Meta:",
+    "cancel": "Cancelar",
+    "save": "Salvar"
+  },
+  "delete_modal": {
+    "title": "EXCLUIR HÁBITO",
+    "warning": "Esta ação não pode ser desfeita.",
+    "cancel": "CANCELAR",
+    "confirm": "EXCLUIR"
+  },
+  "tasks": {
+    "placeholder": "Adicionar nova tarefa...",
+    "empty": "Nenhuma tarefa para este dia.",
+    "clear_completed": "Limpar concluídas"
+  },
+  "notes": {
+    "title": "Diário",
+    "placeholder": "Como foi o seu dia? O que você está sentindo?...",
+    "saving": "Salvando...",
+    "saved": "Salvo ✔️"
+  },
+  "heatmap": {
+    "months": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
+    "days": ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+  },
+  "about": {
+    "title": "Sobre o Memento",
+    "version": "Versão",
+    "useful_links": "Links Úteis",
+    "desktop_title": "Memento para PC",
+    "desktop_subtitle": "Versão Desktop (FastAPI)",
+    "github_title": "Código-fonte no GitHub",
+    "github_subtitle": "O Memento é de código aberto",
+    "contact_title": "Contato e Sugestões",
+    "contact_subtitle": "Fale direto com o desenvolvedor",
+    "legal": "Legal",
+    "privacy_title": "Política de Privacidade",
+    "privacy_subtitle": "100% offline e seguro",
+    "privacy_message": "O Memento é um aplicativo 100% offline. Nós não coletamos, não armazenamos em servidores e não compartilhamos nenhum dos seus dados.\n\nSeus hábitos e anotações pertencem apenas a você e nunca saem deste dispositivo.",
+    "opensource_title": "Licenças Open Source",
+    "opensource_subtitle": "Bibliotecas e tecnologias utilizadas",
+    "opensource_message": "Utilizamos tecnologias como React Native, Expo e Zustand (sob a Licença MIT). Todos os direitos de suas respectivas bibliotecas pertencem aos seus criadores originais.",
+    "footer": "Desenvolvido por intghp"
+  }
+}

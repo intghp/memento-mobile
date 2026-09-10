@@ -2,13 +2,12 @@ import { eachDayOfInterval, endOfWeek, format, startOfWeek, subWeeks } from 'dat
 import * as Icons from 'lucide-react-native';
 import { Activity, ArrowLeft } from 'lucide-react-native';
 import React, { useMemo, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { useHabitStore } from '../../../store/useHabitStore';
 import { Habit, HabitLog } from '../../../types';
 import { styles } from './styles';
-
-const PT_MONTHS = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
 
 interface HabitMacroVisionProps {
   habit: Habit | null;
@@ -16,6 +15,14 @@ interface HabitMacroVisionProps {
 }
 
 export function HabitMacroVision({ habit, onClose }: HabitMacroVisionProps) {
+  const { t } = useTranslation();
+  
+  const monthsArray = t('heatmap.months', { returnObjects: true });
+  const LOCAL_MONTHS = Array.isArray(monthsArray) ? monthsArray : ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+  
+  const daysArray = t('heatmap.days', { returnObjects: true });
+  const LOCAL_DAYS = Array.isArray(daysArray) ? daysArray : ['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'];
+
   const habitLogs = useHabitStore((state) => state.habitLogs);
   
   const heatmapScrollRef = useRef<any>(null);
@@ -77,7 +84,7 @@ export function HabitMacroVision({ habit, onClose }: HabitMacroVisionProps) {
                     const showMonth = day.getDate() <= 7 || i === 0;
                     return (
                       <View key={i} style={styles.monthLabelContainer}>
-                        {showMonth && <Text style={styles.monthLabel}>{PT_MONTHS[day.getMonth()]}</Text>}
+                        {showMonth && <Text style={styles.monthLabel}>{LOCAL_MONTHS[day.getMonth()]}</Text>}
                       </View>
                     );
                   })}
@@ -152,7 +159,7 @@ export function HabitMacroVision({ habit, onClose }: HabitMacroVisionProps) {
             </ScrollView>
             
             <View style={styles.heatmapDayLabels}>
-              {['Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb', 'Dom'].map((d, i) => (
+              {LOCAL_DAYS.map((d, i) => (
                 <Text key={i} style={styles.heatmapDayLabelText}>{d}</Text>
               ))}
             </View>
