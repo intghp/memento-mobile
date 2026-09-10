@@ -1,6 +1,7 @@
 {
   "settings": {
     "title": "Settings",
+    "general": "General",
     "appearance": "Appearance",
     "theme": "App Theme",
     "language": "Language",
@@ -81,5 +82,24 @@
   "heatmap": {
     "months": ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+  },
+  "about": {
+    "title": "About Memento",
+    "version": "Version",
+    "useful_links": "Useful Links",
+    "desktop_title": "Memento for PC",
+    "desktop_subtitle": "Desktop Version (FastAPI)",
+    "github_title": "Source Code on GitHub",
+    "github_subtitle": "Memento is open-source",
+    "contact_title": "Contact & Suggestions",
+    "contact_subtitle": "Speak directly with the developer",
+    "legal": "Legal",
+    "privacy_title": "Privacy Policy",
+    "privacy_subtitle": "100% offline and secure",
+    "privacy_message": "Memento is a 100% offline app. We do not collect, store on servers, or share any of your data.\n\nYour habits and notes belong exclusively to you and never leave this device.",
+    "opensource_title": "Open Source Licenses",
+    "opensource_subtitle":"Libraries and technologies used",
+    "opensource_message": "We use technologies like React Native, Expo, and Zustand (under the MIT License). All rights to their respective libraries belong to their original creators.",
+    "footer": "Developed by intghp"
   }
 }

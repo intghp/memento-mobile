@@ -2,7 +2,7 @@ import { useRouter } from 'expo-router';
 import {
   ArrowLeft, ChevronRight,
   DownloadCloud,
-  Globe, Info, Moon,
+  Globe, Info,
   UploadCloud
 } from 'lucide-react-native';
 import React from 'react';
@@ -17,7 +17,7 @@ export default function SettingsScreen() {
   const { setLanguage } = useSettingsStore();
   const router = useRouter();
   
-  // Tradiução
+  // Tradução
   const { t, i18n } = useTranslation();
 
   // Função para trocar idioma no clique
@@ -87,24 +87,17 @@ export default function SettingsScreen() {
           onPress={toggleLanguage}
         />
 
-        <SettingItem 
-          icon={Moon} 
-          title={t('settings.theme')} 
-          value="Dark" 
-          onPress={() => console.log('Abrir opções: Claro, Escuro, Sistema')}
-        />
-
         <View style={styles.sectionDivider} />
 
         <Text style={styles.sectionLabel}>{t('settings.data_backup')}</Text>
         
         <SettingItem 
-          icon={UploadCloud} 
+          icon={DownloadCloud} 
           title={t('settings.export_backup')} 
           onPress={() => exportBackup(t)}
         />
         <SettingItem 
-          icon={DownloadCloud} 
+          icon={UploadCloud} 
           title={t('settings.import_backup')} 
           onPress={() => importBackup(t)}
         />
@@ -116,7 +109,7 @@ export default function SettingsScreen() {
         <SettingItem 
           icon={Info} 
           title={t('settings.about')} 
-          onPress={() => console.log('Abrir tela Sobre')}
+          onPress={() => router.push('/about' as any)} 
         />
         
         <Text style={styles.versionText}>{t('settings.version')} 1.0.0</Text>

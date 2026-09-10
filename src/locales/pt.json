@@ -1,7 +1,7 @@
 {
   "settings": {
     "title": "Configurações",
-    "general": "Lembretes e Avisos",
+    "general": "Geral",
     "appearance": "Aparência",
     "theme": "Tema do Aplicativo",
     "language": "Idioma",
@@ -92,5 +92,24 @@
   "heatmap": {
     "months": ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"],
     "days": ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"]
+  },
+  "about": {
+    "title": "Sobre o Memento",
+    "version": "Versão",
+    "useful_links": "Links Úteis",
+    "desktop_title": "Memento para PC",
+    "desktop_subtitle": "Versão Desktop (FastAPI)",
+    "github_title": "Código-fonte no GitHub",
+    "github_subtitle": "O Memento é de código aberto",
+    "contact_title": "Contato e Sugestões",
+    "contact_subtitle": "Fale direto com o desenvolvedor",
+    "legal": "Legal",
+    "privacy_title": "Política de Privacidade",
+    "privacy_subtitle": "100% offline e seguro",
+    "privacy_message": "O Memento é um aplicativo 100% offline. Nós não coletamos, não armazenamos em servidores e não compartilhamos nenhum dos seus dados.\n\nSeus hábitos e anotações pertencem apenas a você e nunca saem deste dispositivo.",
+    "opensource_title": "Licenças Open Source",
+    "opensource_subtitle": "Bibliotecas e tecnologias utilizadas",
+    "opensource_message": "Utilizamos tecnologias como React Native, Expo e Zustand (sob a Licença MIT). Todos os direitos de suas respectivas bibliotecas pertencem aos seus criadores originais.",
+    "footer": "Desenvolvido por intghp"
   }
 }
