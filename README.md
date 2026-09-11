@@ -1,69 +1,77 @@
 # Memento Mobile
 
-> Um ecossistema minimalista e inteligente no seu bolso para rastreamento de hábitos, gestão de tarefas e anotações diárias. Projetado para quem busca consistência sem o ruído visual de aplicativos complexos e com foco total em privacidade.
+> A minimalist and intelligent ecosystem in your pocket for habit tracking, task management, and daily notes. Designed for those seeking consistency without the visual clutter of complex apps, with a strong focus on privacy.
 
-![Status](https://img.shields.io/badge/Status-Em%20Desenvolvimento-yellow)
+![Status](https://img.shields.io/badge/Status-In%20Development-yellow)
 ![Stack](https://img.shields.io/badge/Stack-React%20Native%20%7C%20Expo%20%7C%20SQLite-black)
 ![Privacy](https://img.shields.io/badge/Privacy-100%25%20Offline-success)
 
-## ✨ A Filosofia
+## ✨ Ideas
 
-- **100% Offline e Privado:** Seus dados nunca saem do seu celular. Não há servidores, nuvens ou rastreadores ocultos.
-- **Hábitos Justos:** O sistema não te pune por imprevistos. A consistência é medida de forma realística.
-- **Micro e Macro:** Foque no que importa hoje (Micro) e visualize sua consistência histórica com o mapa de calor anual (Macro).
-- **Sem Poluição:** Banco de dados local otimizado que salva apenas o essencial, mantendo o aplicativo leve e rápido.
+* **100% Offline and Private:** Your data never leaves your phone. There are no servers, cloud services, or hidden trackers.
+* **Fair Habits:** The system does not punish you for unexpected events. Consistency is measured realistically.
+* **Micro and Macro:** Focus on what matters today (Micro) and visualize your long-term consistency with the annual heatmap (Macro).
+* **No Clutter:** An optimized local database that stores only what is essential, keeping the app lightweight and fast.
 
-## 🚀 Principais Funcionalidades
+## 🚀 Main Features
 
-### 🎯 Hábitos (Habit Tracker)
-- **Flexibilidade de Metas:** Registre hábitos qualitativos (ex: "Ler") ou quantitativos (ex: "2.5 Litros").
-- **Organização por Turnos:** Separe seus hábitos por Manhã, Tarde ou Noite para manter a rotina limpa.
-- **Visão Macro (Dashboard):** Mapa de calor interativo exibindo seu progresso ao longo do tempo.
+### 🎯 Habits (Habit Tracker)
 
-### ✅ Tarefas Diárias (Task Manager)
-- Interface direta ao ponto para gerenciar o seu dia.
-- Limpeza inteligente de tarefas concluídas com apenas um clique.
+* **Flexible Goals:** Track qualitative habits (e.g., "Read") or quantitative ones (e.g., "2.5 Liters").
+* **Time-of-Day Organization:** Organize your habits into Morning, Afternoon, or Evening to keep your routine clean.
+* **Macro View (Dashboard):** An interactive heatmap displaying your progress over time.
 
-### 📝 Notas Diárias (Journal)
-- Diário integrado para registrar pensamentos e como foi o seu dia.
-- Salvamento automático otimizado.
+### ✅ Daily Tasks (Task Manager)
 
-### ⚙️ Controle Total
-- **Backup e Restauração:** Exporte todos os seus dados para um arquivo json.
-- **Multilíngue:** Suporte nativo para Português e Inglês (i18n).
-- **Dark Mode Nativo:** Interface desenhada para conforto visual noturno.
+* A straightforward interface for managing your day.
+* Smart cleanup of completed tasks with a single click.
 
-## 🛠️ Tecnologias
+### 📝 Daily Notes (Journal)
 
-Todo o ecossistema foi construído com ferramentas modernas para garantir fluidez e confiabilidade:
+* An integrated journal for recording your thoughts and reflecting on how your day went.
+* Optimized automatic saving.
 
-- **React Native & Expo:** Framework robusto para desenvolvimento mobile cross-platform.
-- **Zustand:** Gerenciamento de estado global leve e otimista.
-- **Expo SQLite:** Banco de dados local ultrarrápido rodando direto no dispositivo.
-- **React i18next:** Motor de internacionalização (Traduções dinâmicas).
-- **Lucide Icons:** Iconografia limpa e consistente.
+### ⚙️ Full Control
 
-## 📦 Como Rodar Localmente
+* **Backup and Restore:** Export all your data to a JSON file.
+* **Multilingual:** Native support for Portuguese and English (i18n).
+* **Native Dark Mode:** An interface designed for comfortable use at night.
 
-Ao contrário da versão para PC, o Memento Mobile não exige um backend rodando em paralelo. Tudo o que você precisa é do Node.js instalado e do aplicativo **Expo Go** no seu celular físico.
+## 🛠️ Technologies
 
-**1. Clone o repositório e acesse a pasta**
+The entire ecosystem was built with modern tools to ensure smoothness and reliability:
+
+* **React Native & Expo:** A robust framework for cross-platform mobile development.
+* **Zustand:** Lightweight and optimistic global state management.
+* **Expo SQLite:** A fast local database running directly on the device.
+* **React i18next:** Dynamic internationalization and translation engine.
+* **Lucide Icons:** Clean and consistent iconography.
+
+## 📦 How to Run Locally
+
+Unlike the PC version, Memento Mobile does not require a backend running in parallel. All you need is Node.js installed and the **Expo Go** app on your phone.
+
+**1. Clone the repository and navigate to the folder**
+
 ```bash
 git clone https://github.com/seu-usuario/memento-mobile.git
 cd memento-mobile
 ```
 
-**2. Instale as dependências**
+**2. Install the dependencies**
+
 ```bash
 npm install
 ```
 
-**3. Inicie o servidor do Expo**
+**3. Start the Expo server**
+
 ```bash
 npx expo start
 ```
 
-**4. Teste no seu celular**
-- Baixe o aplicativo **Expo Go** (disponível na App Store ou Google Play).
-- Abra a câmera do seu celular e escaneie o **QR Code** que apareceu no seu terminal.
-- O aplicativo será compilado e abrirá instantaneamente na sua tela!
+**4. Test it on your phone**
+
+* Download the **Expo Go** app (available on the App Store or Google Play).
+* Open your phone's camera and scan the **QR Code** that appeared in your terminal.
+* The app will be compiled and opened instantly on your screen!
