@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { KeyboardAvoidingView, Platform, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, ScrollView, Text, TextInput, View } from 'react-native';
 import { useDateStore } from '../../store/useDateStore';
 import { useNoteStore } from '../../store/useNoteStore';
 import { styles } from './styles';
@@ -55,15 +55,17 @@ export default function NoteEditor() {
         <Text style={styles.status}>{saveStatus}</Text>
       </View>
       
-      <TextInput
-        style={styles.input}
-        multiline
-        placeholder={t('notes.placeholder')}
-        placeholderTextColor="#555"
-        value={text}
-        onChangeText={setText}
-        textAlignVertical="top"
-      />
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+        <TextInput
+          style={styles.input}
+          multiline
+          placeholder={t('notes.placeholder')}
+          placeholderTextColor="#555"
+          value={text}
+          onChangeText={setText}
+          textAlignVertical="top"
+        />
+      </ScrollView>
     </KeyboardAvoidingView>
   );
 }

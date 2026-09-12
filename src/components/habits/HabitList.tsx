@@ -3,6 +3,7 @@ import { Activity, AlertTriangle, Apple, ArrowLeft, Baby, Bed, Bike, Book, BookO
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Animated, FlatList, KeyboardAvoidingView, Modal, Platform, ScrollView, SectionList, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDateStore } from '../../store/useDateStore';
 import { useHabitStore } from '../../store/useHabitStore';
 import { Habit } from '../../types';
@@ -396,7 +397,7 @@ export default function HabitsList() {
           style={styles.fullScreenModalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         >
-          <View style={styles.fullScreenModalContent}>
+          <SafeAreaView style={styles.fullScreenModalContent}>
             
             {modalStep === 'main' && (
               <View style={{ flex: 1 }}>
@@ -640,7 +641,7 @@ export default function HabitsList() {
               </View>
             )}
 
-          </View>
+          </SafeAreaView>
         </KeyboardAvoidingView>
       </Modal>
 
