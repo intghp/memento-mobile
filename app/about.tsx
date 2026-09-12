@@ -10,7 +10,7 @@ import {
 } from 'lucide-react-native';
 import React from 'react';
 import { useTranslation } from 'react-i18next';
-import { Alert, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Alert, Image, Linking, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function AboutScreen() {
@@ -69,9 +69,10 @@ export default function AboutScreen() {
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
         
         <View style={styles.brandingContainer}>
-          <View style={styles.logoPlaceholder}>
-            <Text style={styles.logoText}>M</Text>
-          </View>
+          <Image 
+            source={require('../assets/images/icon-about.png')} 
+            style={styles.logoImage} 
+          />
           <Text style={styles.appName}>Memento</Text>
           <Text style={styles.appVersion}>{t('about.version')} 1.0.0</Text>
         </View>
@@ -115,7 +116,7 @@ export default function AboutScreen() {
         />
 
         <Text style={styles.footerText}>
-          {t('about.footer')}
+          {t('about.footer')} intghp{'\n'}
           © {new Date().getFullYear()} Memento
         </Text>
 
@@ -132,9 +133,8 @@ const styles = StyleSheet.create({
   scrollContent: { paddingBottom: 60 },
   
   brandingContainer: { alignItems: 'center', paddingHorizontal: 32, marginTop: 24, marginBottom: 16 },
-  logoPlaceholder: { width: 72, height: 72, backgroundColor: '#2A2A2A', borderRadius: 18, alignItems: 'center', justifyContent: 'center', marginBottom: 16 },
-  logoText: { color: '#00E676', fontSize: 36, fontWeight: 'bold' },
   appName: { color: '#ffffff', fontSize: 24, fontWeight: 'bold', marginBottom: 4 },
+  logoImage: { width: 80, height: 80, borderRadius: 20, marginBottom: 16},
   appVersion: { color: '#888888', fontSize: 14, fontWeight: '500', marginBottom: 16 },
   
   sectionLabel: { color: '#666666', fontSize: 12, fontWeight: 'bold', textTransform: 'uppercase', letterSpacing: 1.2, paddingHorizontal: 24, marginTop: 24, marginBottom: 8 },
