@@ -1,8 +1,8 @@
 import { format } from 'date-fns';
-import { Activity, AlertTriangle, Apple, ArrowLeft, Baby, Bed, Bike, Book, BookOpen, Brain, Briefcase, Camera, Car, Check, Circle, Clock, Cloud, Code, Coffee, Compass, Cpu, CreditCard, Crosshair, Droplets, Dumbbell, Feather, Flag, Flame, Gamepad2, Gift, GraduationCap, Guitar, Headphones, Heart, Home, Image, Key, Leaf, Map, Mic, Minus, Monitor, Moon, Music, Palette, PenTool, Pill, Plane, Plus, Scissors, Shield, ShoppingBag, Smartphone, Smile, Speaker, Star, Sun, Target, Thermometer, Trash, Trash2, Trophy, Truck, Tv, Umbrella, Utensils, Video, Watch, Wifi, Wind, X, XCircle } from 'lucide-react-native';
+import { Activity, AlertTriangle, Apple, ArrowLeft, ArrowUpDown, Baby, Bed, Bike, Book, BookOpen, Brain, Briefcase, Camera, Car, Check, ChevronDown, ChevronUp, Circle, Clock, Cloud, Code, Coffee, Compass, Cpu, CreditCard, Crosshair, Droplets, Dumbbell, Feather, Flag, Flame, Gamepad2, Gift, GraduationCap, Guitar, Headphones, Heart, Home, Image, Key, Leaf, Map, Mic, Minus, Monitor, Moon, Music, Palette, PenTool, Pill, Plane, Plus, Scissors, Shield, ShoppingBag, Smartphone, Smile, Speaker, Star, Sun, Target, Thermometer, Trash, Trash2, Trophy, Truck, Tv, Umbrella, Utensils, Video, Watch, Wifi, Wind, X, XCircle } from 'lucide-react-native';
 import React, { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Animated, FlatList, KeyboardAvoidingView, Modal, Platform, ScrollView, SectionList, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { Animated, KeyboardAvoidingView, Modal, Platform, ScrollView, Switch, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDateStore } from '../../store/useDateStore';
 import { useHabitStore } from '../../store/useHabitStore';
@@ -26,7 +26,7 @@ const ICON_MAP: Record<string, any> = {
 export default function HabitsList() {
   const { t } = useTranslation();
   const { selectedDate } = useDateStore();
-  const { habits, fetchHabits, fetchHabitLogs, clearHabitLogs, addHabit, updateHabit, toggleHabitStatus, updateHabitProgress, deleteHabit } = useHabitStore();
+  const { habits, fetchHabits, fetchHabitLogs, clearHabitLogs, addHabit, updateHabit, toggleHabitStatus, updateHabitProgress, deleteHabit, reorderHabits, isReorderMode, toggleReorderMode } = useHabitStore();
 
   // Estados do Modal de Adicionar Hábito
   const [isModalVisible, setModalVisible] = useState(false);
@@ -34,7 +34,6 @@ export default function HabitsList() {
   const [editingHabitId, setEditingHabitId] = useState<number | null>(null);
   
   const [newHabitName, setNewHabitName] = useState('');
-  const [newHabitShift, setNewHabitShift] = useState('Qualquer'); 
   const [selectedColor, setSelectedColor] = useState(HABIT_COLORS[9]);
   const [selectedIcon, setSelectedIcon] = useState('Activity');
 
@@ -53,14 +52,10 @@ export default function HabitsList() {
   const [activeDays, setActiveDays] = useState<number[]>([0, 1, 2, 3, 4, 5, 6]);
 
   const fadeAnim = useRef(new Animated.Value(1)).current;
-  const shiftAnim = useRef(new Animated.Value(0)).current;
-  const [segmentWidth, setSegmentWidth] = useState(0);
   const isFirstRender = useRef(true);
 
   const todayDateString = format(new Date(), 'yyyy-MM-dd');
   const isPastDay = selectedDate < todayDateString;
-
-  const SHIFTS = ['Qualquer', 'Manhã', 'Tarde', 'Noite'];
   
   const daysList = t('habit_modal.days', { returnObjects: true });
   const daysArray = Array.isArray(daysList) ? daysList : ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
@@ -87,34 +82,8 @@ export default function HabitsList() {
     });
   }, [selectedDate]);
 
-  useEffect(() => {
-    const index = SHIFTS.indexOf(newHabitShift);
-    Animated.timing(shiftAnim, {
-      toValue: index !== -1 ? index : 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
-  }, [newHabitShift]);
-
-  // 2. Transforma a lista plana do banco em Seções (Manhã, Tarde, Noite)
-  const getSections = () => {
-    const qualquer = habits.filter(h => h.shift === 'Qualquer');
-    const manha = habits.filter(h => h.shift === 'Manhã');
-    const tarde = habits.filter(h => h.shift === 'Tarde');
-    const noite = habits.filter(h => h.shift === 'Noite');
-
-    const sections = [];
-    if (qualquer.length > 0) sections.push({ title: t('habit_list.sections.general'), data: qualquer });
-    if (manha.length > 0) sections.push({ title: t('habit_list.sections.morning'), data: manha });
-    if (tarde.length > 0) sections.push({ title: t('habit_list.sections.afternoon'), data: tarde });
-    if (noite.length > 0) sections.push({ title: t('habit_list.sections.night'), data: noite });
-
-    return sections;
-  };
-
   const resetModal = () => {
     setNewHabitName('');
-    setNewHabitShift('Qualquer');
     setSelectedColor(HABIT_COLORS[9]);
     setSelectedIcon('Activity');
     setIsQuantitative(false);
@@ -130,7 +99,6 @@ export default function HabitsList() {
 
   const openEditModal = (habit: Habit) => {
     setNewHabitName(habit.name);
-    setNewHabitShift(habit.shift || 'Qualquer');
     setSelectedColor(habit.color);
     setSelectedIcon(habit.icon);
     setIsQuantitative(!!habit.is_quantitative);
@@ -162,26 +130,26 @@ export default function HabitsList() {
     if (editingHabitId) {
       await updateHabit(editingHabitId, {
         name: newHabitName,
-        shift: newHabitShift,
         color: selectedColor,
         icon: selectedIcon,
         is_quantitative: isQuantitative,
         goal_amount: goalNum,
         unit: isQuantitative ? unit : null,
-        specific_days: daysString
-      }, selectedDate);
+        specific_days: daysString,
+        shift: 'Qualquer'
+      } as any, selectedDate);
     } else {
       await addHabit({
         name: newHabitName,
         frequency: 'Diário',
         specific_days: daysString,
-        shift: newHabitShift,
+        shift: 'Qualquer',
         is_quantitative: isQuantitative,
         goal_amount: goalNum,
         unit: isQuantitative ? unit : null,
         color: selectedColor,
         icon: selectedIcon
-      }, selectedDate);
+      } as any, selectedDate);
     }
 
     resetModal();
@@ -194,26 +162,52 @@ export default function HabitsList() {
     }
   };
 
-  const sections = getSections();
+  const moveUp = (index: number) => {
+    if (index === 0) return;
+    const newHabits = [...habits];
+    const temp = newHabits[index];
+    newHabits[index] = newHabits[index - 1];
+    newHabits[index - 1] = temp;
+    reorderHabits(newHabits);
+  };
+
+  const moveDown = (index: number) => {
+    if (index === habits.length - 1) return;
+    const newHabits = [...habits];
+    const temp = newHabits[index];
+    newHabits[index] = newHabits[index + 1];
+    newHabits[index + 1] = temp;
+    reorderHabits(newHabits);
+  };
+
   const SelectedIconComponent = ICON_MAP[selectedIcon] || Activity;
 
   return (
     <View style={styles.container}>
       
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-        {/* LISTA DE HÁBITOS*/}
-          <SectionList
-            sections={sections}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            renderSectionHeader={({ section: { title } }) => (
-              <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>{title}</Text>
-                <View style={styles.sectionLine} />
-              </View>
-            )}
-            renderItem={({ item }) => {
+        {/* LISTA DE HÁBITOS Pura e Estável */}
+        <ScrollView contentContainerStyle={[styles.listContent, { paddingTop: 24 }]} showsVerticalScrollIndicator={false}>
+          
+          <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 16 }}>
+            <TouchableOpacity 
+              onPress={toggleReorderMode} 
+              style={{ flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 12, backgroundColor: isReorderMode ? 'rgba(0, 230, 118, 0.15)' : '#1A1A1A', borderRadius: 20 }}
+            >
+              <ArrowUpDown color={isReorderMode ? '#00E676' : '#888'} size={16} />
+              <Text style={{ color: isReorderMode ? '#00E676' : '#888', fontSize: 13, fontWeight: 'bold', marginLeft: 8 }}>
+                {isReorderMode ? "Concluído" : "Reordenar"}
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {habits.length === 0 ? (
+            <View style={styles.emptyContainer}>
+               <Text style={styles.emptyText}>{t('habit_list.empty_title')}</Text>
+               <Text style={styles.emptySubText}>{t('habit_list.empty_subtitle')}</Text>
+            </View>
+          ) : (
+            habits.map((item, index) => {
               const isCompleted = item.is_completed === 1;
               const isFailed = item.is_completed === -1;
               const isSkipped = item.is_skipped === 1;
@@ -245,17 +239,22 @@ export default function HabitsList() {
               }
 
               return (
-                <View style={styles.habitRow}>             
+                <View key={item.id} style={styles.habitRow}>             
+                  
                   {/* Esquerda: Ícone Genérico e Nome */}
                   <TouchableOpacity 
-                    activeOpacity={0.7} 
+                    activeOpacity={isReorderMode ? 1 : 0.7} 
                     style={styles.leftContent}
                     onPress={async () => {
-                      clearHabitLogs();             
-                      await fetchHabitLogs(item.id);
-                      setHeatmapHabit(item);
+                      if (!isReorderMode) {
+                        clearHabitLogs();             
+                        await fetchHabitLogs(item.id);
+                        setHeatmapHabit(item);
+                      }
                     }} 
-                    onLongPress={() => openEditModal(item)}
+                    onLongPress={() => {
+                      if (!isReorderMode) openEditModal(item);
+                    }}
                   >
                     <View style={[styles.iconWrapper, { borderColor: isColored ? item.color : '#333' }]}>
                       <IconComponent color={isColored ? item.color : '#555'} size={16} />
@@ -265,65 +264,88 @@ export default function HabitsList() {
                     </Text>
                   </TouchableOpacity>
 
-                  {/* Direita: Check ou Círculo Vazio */}
-                  <TouchableOpacity 
-                    activeOpacity={0.7} 
-                    style={styles.rightContent}
-                    // Ao clicar na linha, marca ou desmarca o hábito neste dia!
-                    onPress={() => {
-                      if (isQuant) {
-                        setProgressHabit(item);
-                        setProgressInput(currentAmount > 0 ? currentAmount.toString().replace('.', ',') : '');
-                      } else {
-                        toggleHabitStatus(item.id, selectedDate, item.is_completed, item.is_skipped);
-                      }
-                    }}
-                  >
-                    {isQuant ? (
-                      <View style={[styles.quantRight, { width: '100%' }]}>
-                        <Text style={[styles.quantAmount, { color: isColored ? item.color : (isFaded ? '#555' : '#888') }]}>
-                          {currentAmount.toString().replace('.', ',')}
-                        </Text>
-                        {!!unitLabel && (
-                          <Text style={[styles.quantUnit, isFaded && { color: '#444' }]}>{unitLabel}</Text>
-                        )}
-                        
-                        {!isCompleted && !isSkipped && !isFailed && (
-                          <View style={{ width: '100%', height: 3, backgroundColor: '#2A2A2A', borderRadius: 2, marginTop: 4, overflow: 'hidden' }}>
-                            <View style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: item.color }} />
-                          </View>
-                        )}
-                      </View>
-                    ) : (
-                      (isCompleted || isSkipped || isFailed || (isPastDay && !hasPartialProgress)) ? (
-                        <RightIcon color={rightIconColor} size={24} strokeWidth={3} />
+                  {/* Direita: Check ou Controles de Ordem */}
+                  {!isReorderMode ? (
+                    <TouchableOpacity 
+                      activeOpacity={0.7} 
+                      style={styles.rightContent}
+                      // Ao clicar na linha, marca ou desmarca o hábito neste dia!
+                      onPress={() => {
+                        if (isQuant) {
+                          setProgressHabit(item);
+                          setProgressInput(currentAmount > 0 ? currentAmount.toString().replace('.', ',') : '');
+                        } else {
+                          toggleHabitStatus(item.id, selectedDate, item.is_completed, item.is_skipped);
+                        }
+                      }}
+                    >
+                      {isQuant ? (
+                        <View style={[styles.quantRight, { width: '100%' }]}>
+                          <Text style={[styles.quantAmount, { color: isColored ? item.color : (isFaded ? '#555' : '#888') }]}>
+                            {currentAmount.toString().replace('.', ',')}
+                          </Text>
+                          {!!unitLabel && (
+                            <Text style={[styles.quantUnit, isFaded && { color: '#444' }]}>{unitLabel}</Text>
+                          )}
+                          
+                          {!isCompleted && !isSkipped && !isFailed && (
+                            <View style={{ width: '100%', height: 3, backgroundColor: '#2A2A2A', borderRadius: 2, marginTop: 4, overflow: 'hidden' }}>
+                              <View style={{ width: `${progressPercent}%`, height: '100%', backgroundColor: item.color }} />
+                            </View>
+                          )}
+                        </View>
                       ) : (
-                        <Circle color="#2A2A2A" size={24} />
-                      )
-                    )}
-                  </TouchableOpacity>
+                        (isCompleted || isSkipped || isFailed || (isPastDay && !hasPartialProgress)) ? (
+                          <RightIcon color={rightIconColor} size={24} strokeWidth={3} />
+                        ) : (
+                          <Circle color="#2A2A2A" size={24} />
+                        )
+                      )}
+                    </TouchableOpacity>
+                  ) : (
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'flex-end', width: 80, gap: 8 }}>
+                      <TouchableOpacity onPress={() => moveUp(index)} disabled={index === 0} style={{ padding: 8 }}>
+                        <ChevronUp color={index === 0 ? '#333' : '#ffffff'} size={24} />
+                      </TouchableOpacity>
+                      <TouchableOpacity onPress={() => moveDown(index)} disabled={index === habits.length - 1} style={{ padding: 8 }}>
+                        <ChevronDown color={index === habits.length - 1 ? '#333' : '#ffffff'} size={24} />
+                      </TouchableOpacity>
+                    </View>
+                  )}
                   
                 </View>
               );
-            }}
-          />
+            })
+          )}
+        </ScrollView>
       </Animated.View>
 
       {/* BOTÃO FLUTUANTE DE ADICIONAR */}
-      <TouchableOpacity 
-        style={styles.fab} 
-        activeOpacity={0.8}
-        onPress={() => {
-          resetModal();
-          setModalVisible(true);
-        }}
-      >
-        <Plus color="#121212" size={28} />
-      </TouchableOpacity>
+      {!isReorderMode && (
+        <TouchableOpacity 
+          style={styles.fab} 
+          activeOpacity={0.8}
+          onPress={() => {
+            resetModal();
+            setModalVisible(true);
+          }}
+        >
+          <Plus color="#121212" size={28} />
+        </TouchableOpacity>
+      )}
 
       <HabitMacroVision 
         habit={heatmapHabit} 
         onClose={() => setHeatmapHabit(null)} 
+        onEdit={() => {
+          if (heatmapHabit) {
+            const habitToEdit = heatmapHabit;
+            setHeatmapHabit(null);
+            setTimeout(() => {
+              openEditModal(habitToEdit);
+            }, 150);
+          }
+        }}
       />
 
       <Modal visible={!!progressHabit} transparent={true} animationType="fade" onRequestClose={() => setProgressHabit(null)}>
@@ -352,8 +374,10 @@ export default function HabitsList() {
                 <Text style={styles.progressCancelText}>{t('progress_modal.cancel')}</Text>
               </TouchableOpacity>
               <TouchableOpacity style={[styles.progressSaveBtn, { backgroundColor: progressHabit?.color || '#ffffff' }]} onPress={() => {
+                if (!progressHabit) return;
+                
                 const amount = parseFloat(progressInput.replace(',', '.')) || 0;
-                updateHabitProgress(progressHabit!.id, selectedDate, amount, progressHabit!.goal_amount);
+                updateHabitProgress(progressHabit.id, selectedDate, amount, progressHabit.goal_amount);
                 setProgressHabit(null);
               }}>
                 <Text style={styles.progressSaveText}>{t('progress_modal.save')}</Text>
@@ -387,12 +411,7 @@ export default function HabitsList() {
       </Modal>
 
       {/* MODAL PRINCIPAL E SUBTELAS */}
-      <Modal
-        visible={isModalVisible}
-        transparent={true}
-        animationType="slide"
-        onRequestClose={resetModal}
-      >
+      <Modal visible={isModalVisible} transparent={true} animationType="slide" onRequestClose={resetModal}>
         <KeyboardAvoidingView 
           style={styles.fullScreenModalOverlay}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -531,43 +550,6 @@ export default function HabitsList() {
                     })}
                   </View>
 
-                  <Text style={styles.label}>{t('habit_modal.shift')}</Text>
-                  <View style={styles.diRadioWrap}>
-                    <View 
-                      style={styles.diRadioIsland}
-                      onLayout={(e) => setSegmentWidth((e.nativeEvent.layout.width - 12) / 4)}
-                    >
-                      {segmentWidth > 0 && (
-                        <Animated.View 
-                          style={[
-                            styles.diRadioIndicator, 
-                            { 
-                              width: segmentWidth, 
-                              transform: [{ 
-                                translateX: shiftAnim.interpolate({
-                                  inputRange: [0, 1, 2, 3],
-                                  outputRange: [0, segmentWidth, segmentWidth * 2, segmentWidth * 3]
-                                })
-                              }] 
-                            }
-                          ]} 
-                        />
-                      )}
-                      {SHIFTS.map((shift) => (
-                        <TouchableOpacity
-                          key={shift}
-                          activeOpacity={0.7}
-                          style={styles.diRadioBtn}
-                          onPress={() => setNewHabitShift(shift)}
-                        >
-                          <Text style={[styles.diRadioBtnText, newHabitShift === shift && styles.diRadioBtnTextActive]}>
-                            {t(`habit_modal.shifts.${shift}`)}
-                          </Text>
-                        </TouchableOpacity>
-                      ))}
-                    </View>
-                  </View>
-
                   {editingHabitId && (
                     <TouchableOpacity style={styles.deleteHabitButton} onPress={() => setShowDeleteConfirm(true)}>
                       <Trash2 color="#FF5252" size={20} />
@@ -589,7 +571,7 @@ export default function HabitsList() {
                   <View style={{ width: 60 }} /> 
                 </View>
                 <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.fullScreenScrollContent}>
-                  <View style={styles.gridContainer}>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 16 }}>
                     {HABIT_COLORS.map(color => (
                       <TouchableOpacity 
                         key={color} 
@@ -614,30 +596,26 @@ export default function HabitsList() {
                   <Text style={styles.fullScreenTitle}>{t('habit_modal.icon_title')}</Text>
                   <View style={{ width: 60 }} /> 
                 </View>
-                <FlatList
-                  data={Object.keys(ICON_MAP)}
-                  keyExtractor={(item) => item}
-                  numColumns={4}
-                  showsVerticalScrollIndicator={false}
-                  columnWrapperStyle={styles.iconGridRow}
-                  contentContainerStyle={styles.fullScreenScrollContent}
-                  initialNumToRender={16}
-                  renderItem={({ item: iconName }) => {
-                    const Icon = ICON_MAP[iconName];
-                    const isActive = selectedIcon === iconName;
-                    return (
-                      <TouchableOpacity 
-                        style={[styles.gridIconButton, isActive && { backgroundColor: selectedColor }]}
-                        onPress={() => {
-                          setSelectedIcon(iconName);
-                          setModalStep('main');
-                        }}
-                      >
-                        <Icon color={isActive ? '#121212' : '#888'} size={24} />
-                      </TouchableOpacity>
-                    );
-                  }}
-                />
+                <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.fullScreenScrollContent}>
+                  <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: 16 }}>
+                    {Object.keys(ICON_MAP).map((iconName) => {
+                      const Icon = ICON_MAP[iconName];
+                      const isActive = selectedIcon === iconName;
+                      return (
+                        <TouchableOpacity 
+                          key={iconName}
+                          style={[styles.gridIconButton, isActive && { backgroundColor: selectedColor }]}
+                          onPress={() => {
+                            setSelectedIcon(iconName);
+                            setModalStep('main');
+                          }}
+                        >
+                          <Icon color={isActive ? '#121212' : '#888'} size={24} />
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                </ScrollView>
               </View>
             )}
 

@@ -5,6 +5,8 @@ import { Habit, HabitLog } from '../types';
 interface HabitStore {
   habits: Habit[];
   habitLogs: HabitLog[];
+  isReorderMode: boolean;
+  toggleReorderMode: () => void;
   fetchHabits: (date: string) => Promise<void>;
   fetchHabitLogs: (habitId: number) => Promise<void>;
   clearHabitLogs: () => void;
@@ -13,13 +15,16 @@ interface HabitStore {
   toggleHabitStatus: (habitId: number, date: string, currentCompleted?: number, currentSkipped?: number) => Promise<void>;
   updateHabitProgress: (habitId: number, date: string, amountCompleted: number, goalAmount: number | null) => Promise<void>;
   deleteHabit: (habitId: number, currentDate: string) => Promise<void>;
+  reorderHabits: (orderedHabits: Habit[]) => Promise<void>;
 }
 
 export const useHabitStore = create<HabitStore>((set, get) => ({
   habits: [],
   habitLogs: [],
+  isReorderMode: false,
 
-  // Limpa os logs ao fechar o modal do Heatmap
+  toggleReorderMode: () => set((state) => ({ isReorderMode: !state.isReorderMode })),
+
   clearHabitLogs: () => set({ habitLogs: [] }),
 
   // Busca todos os hábitos e cruza com os Logs do dia selecionado
@@ -40,6 +45,7 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
         FROM habits h
         LEFT JOIN habit_logs l ON h.id = l.habit_id AND l.target_date = ?
         WHERE h.specific_days IS NULL OR h.specific_days LIKE ?
+        ORDER BY h.position ASC, h.id ASC
       `, [date, `%${dayOfWeek}%`]);
       
       set({ habits: result });
@@ -65,13 +71,12 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
   addHabit: async (habit, currentDate) => {
     try {
       await db.runAsync(`
-        INSERT INTO habits (name, frequency, specific_days, shift, is_quantitative, goal_amount, unit, color, icon)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO habits (name, frequency, specific_days, is_quantitative, goal_amount, unit, color, icon, position)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
       `, [
         habit.name ?? 'Novo Hábito', 
         habit.frequency ?? 'Diário', 
         habit.specific_days ?? null, 
-        habit.shift ?? 'Qualquer', 
         habit.is_quantitative ? 1 : 0, 
         habit.goal_amount ?? null, 
         habit.unit ?? null,
@@ -92,11 +97,10 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
     try {
       await db.runAsync(`
         UPDATE habits 
-        SET name = ?, shift = ?, color = ?, icon = ?, is_quantitative = ?, goal_amount = ?, unit = ?, specific_days = ?
+        SET name = ?, color = ?, icon = ?, is_quantitative = ?, goal_amount = ?, unit = ?, specific_days = ?
         WHERE id = ?
       `, [
         habitData.name ?? 'Hábito',
-        habitData.shift ?? 'Qualquer',
         habitData.color ?? '#00E676',
         habitData.icon ?? 'Activity',
         habitData.is_quantitative ? 1 : 0,
@@ -199,6 +203,17 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
       }
     } catch (error) {
       console.error('Erro ao deletar hábito:', error);
+    }
+  },
+
+  reorderHabits: async (orderedHabits) => {
+    set({ habits: orderedHabits }); 
+    try {
+      for (let i = 0; i < orderedHabits.length; i++) {
+        await db.runAsync('UPDATE habits SET position = ? WHERE id = ?', [i, orderedHabits[i].id]);
+      }
+    } catch (error) {
+      console.error('Erro ao reordenar hábitos:', error);
     }
   }
 }));

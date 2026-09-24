@@ -21,7 +21,7 @@ const ITEM_WIDTH = SCREEN_WIDTH / VISIBLE_DAYS;
 
 export default function HomeLayout() {
   const { selectedDate, setSelectedDate } = useDateStore();
-  const { fetchHabits } = useHabitStore();
+  const { fetchHabits, isReorderMode } = useHabitStore();
   const flatListRef = useRef<FlatList>(null);
   const router = useRouter();
   const { t, i18n } = useTranslation();
@@ -148,6 +148,7 @@ export default function HomeLayout() {
       <TopTabs
         initialRouteName="index" // Começa na tela do meio (Hábitos)
         screenOptions={{
+          swipeEnabled: !isReorderMode,
           tabBarStyle: { backgroundColor: '#121212', elevation: 0, shadowOpacity: 0 },
           tabBarIndicatorStyle: { backgroundColor: '#ffffff', height: 2 },
           tabBarActiveTintColor: '#ffffff',

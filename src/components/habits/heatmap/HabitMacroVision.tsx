@@ -1,9 +1,9 @@
 import { eachDayOfInterval, endOfWeek, format, startOfWeek, subWeeks } from 'date-fns';
 import * as Icons from 'lucide-react-native';
-import { Activity, ArrowLeft } from 'lucide-react-native';
-import React, { useMemo, useRef } from 'react';
+import { Activity, ArrowLeft, Edit2 } from 'lucide-react-native';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, InteractionManager, Modal, ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import { useHabitStore } from '../../../store/useHabitStore';
 import { Habit, HabitLog } from '../../../types';
@@ -12,9 +12,10 @@ import { styles } from './styles';
 interface HabitMacroVisionProps {
   habit: Habit | null;
   onClose: () => void;
+  onEdit: () => void;
 }
 
-export function HabitMacroVision({ habit, onClose }: HabitMacroVisionProps) {
+export function HabitMacroVision({ habit, onClose, onEdit }: HabitMacroVisionProps) {
   const { t } = useTranslation();
   
   const monthsArray = t('heatmap.months', { returnObjects: true });
@@ -27,6 +28,17 @@ export function HabitMacroVision({ habit, onClose }: HabitMacroVisionProps) {
   
   const heatmapScrollRef = useRef<any>(null);
   const todayDateString = format(new Date(), 'yyyy-MM-dd');
+  
+  const [isReady, setIsReady] = useState(false);
+
+  useEffect(() => {
+    if (habit) {
+      setIsReady(false);
+      InteractionManager.runAfterInteractions(() => {
+        setIsReady(true);
+      });
+    }
+  }, [habit]);
 
   const logsDict = useMemo(() => {
     const dict: Record<string, HabitLog> = {};
@@ -67,96 +79,101 @@ export function HabitMacroVision({ habit, onClose }: HabitMacroVisionProps) {
               {habit && <IconComponent color={habit.color} size={20} />}
               <Text style={styles.heatmapTitle}>{habit?.name}</Text>
             </View>
-            <View style={{ width: 40 }} />
+            <TouchableOpacity onPress={onEdit} style={styles.heatmapCloseBtn}>
+              <Edit2 color="#fff" size={20} />
+            </TouchableOpacity>
           </View>
 
           <View style={styles.heatmapWrapper}>
-            <ScrollView 
-              horizontal 
-              showsHorizontalScrollIndicator={false} 
-              ref={heatmapScrollRef} 
-              onContentSizeChange={() => heatmapScrollRef.current?.scrollToEnd({ animated: false })} 
-            >
-              <View>
-                <View style={styles.monthsRow}>
-                  {weeksData.map((week, i) => {
-                    const day = week[0];
-                    const showMonth = day.getDate() <= 7 || i === 0;
-                    return (
-                      <View key={i} style={styles.monthLabelContainer}>
-                        {showMonth && <Text style={styles.monthLabel}>{LOCAL_MONTHS[day.getMonth()]}</Text>}
-                      </View>
-                    );
-                  })}
-                </View>
+            {!isReady ? (
+              <View style={{ flex: 1, minHeight: 200, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color={habit?.color || '#ffffff'} />
+              </View>
+            ) : (
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false} 
+                ref={heatmapScrollRef} 
+                onContentSizeChange={() => heatmapScrollRef.current?.scrollToEnd({ animated: false })} 
+              >
+                <View>
+                  <View style={styles.monthsRow}>
+                    {weeksData.map((week, i) => {
+                      const day = week[0];
+                      const showMonth = day.getDate() <= 7 || i === 0;
+                      return (
+                        <View key={i} style={styles.monthLabelContainer}>
+                          {showMonth && <Text style={styles.monthLabel}>{LOCAL_MONTHS[day.getMonth()]}</Text>}
+                        </View>
+                      );
+                    })}
+                  </View>
 
-                <View style={styles.gridRow}>
-                  {weeksData.map((week, wIndex) => (
-                    <View key={wIndex} style={styles.heatmapColumn}>
-                      {week.map((day) => {
-                        const dateStr = format(day, 'yyyy-MM-dd');
-                        const log = logsDict[dateStr];
-                        const isFuture = dateStr > todayDateString;
-                        const dayOfWeek = day.getDay();
-                        const isActiveDay = !habit?.specific_days || habit.specific_days.includes(dayOfWeek.toString());
+                  <View style={styles.gridRow}>
+                    {weeksData.map((week, wIndex) => (
+                      <View key={wIndex} style={styles.heatmapColumn}>
+                        {week.map((day) => {
+                          const dateStr = format(day, 'yyyy-MM-dd');
+                          const log = logsDict[dateStr];
+                          const isFuture = dateStr > todayDateString;
+                          const dayOfWeek = day.getDay();
+                          const isActiveDay = !habit?.specific_days || habit.specific_days.includes(dayOfWeek.toString());
 
-                        let bgColor = '#1E1E1E';
-                        let textColor = '#444';
-                        let borderColor = 'transparent';
-                        let progressPercent = 0;
-                        let showProgressBar = false;
+                          let bgColor = '#1E1E1E';
+                          let textColor = '#444';
+                          let borderColor = 'transparent';
+                          let progressPercent = 0;
+                          let showProgressBar = false;
 
-                        if (log) {
-                          if (log.is_completed === 1) { 
-                            bgColor = habit!.color;
-                            textColor = '#121212';
-                          } else if (log.is_skipped === 1) { 
-                            bgColor = '#2A2A2A';
-                            borderColor = habit!.color;
-                            textColor = habit!.color;
-                          } else if (log.is_completed === -1) { 
-                            bgColor = '#4A0000';
-                            textColor = '#FF8A80';
-                          } else if (habit!.is_quantitative && log.amount_completed! > 0) {
-                            bgColor = '#2A2A2A';
-                            textColor = '#ffffff';
-                            progressPercent = Math.min(100, (log.amount_completed! / habit!.goal_amount!) * 100);
-                            showProgressBar = true;
-                          } else if (dateStr < todayDateString) { 
-                            bgColor = '#2A2A2A';
-                            textColor = '#666';
+                          if (log) {
+                            if (log.is_completed === 1) { 
+                              bgColor = habit!.color;
+                              textColor = '#121212';
+                            } else if (log.is_skipped === 1) { 
+                              bgColor = '#2A2A2A';
+                              borderColor = habit!.color;
+                              textColor = habit!.color;
+                            } else if (log.is_completed === -1) { 
+                              bgColor = '#4A0000';
+                              textColor = '#FF8A80';
+                            } else if (habit!.is_quantitative && log.amount_completed! > 0) {
+                              bgColor = '#2A2A2A';
+                              textColor = '#ffffff';
+                              progressPercent = Math.min(100, (log.amount_completed! / habit!.goal_amount!) * 100);
+                              showProgressBar = true;
+                            }
+                          } else if (!isFuture) {
+                            if (isActiveDay) { 
+                              bgColor = '#2A2A2A';
+                              textColor = '#666';
+                            } else { 
+                              bgColor = '#1A1A1A';
+                              textColor = '#333';
+                            }
                           }
-                        } else if (!isFuture) {
-                          if (isActiveDay) { 
-                            bgColor = '#2A2A2A';
-                            textColor = '#666';
-                          } else { 
-                            bgColor = '#1A1A1A';
+
+                          if (isFuture) {
+                            bgColor = '#121212';
                             textColor = '#333';
                           }
-                        }
 
-                        if (isFuture) {
-                          bgColor = '#121212';
-                          textColor = '#333';
-                        }
-
-                        return (
-                          <View key={dateStr} style={[styles.heatmapSquare, { backgroundColor: bgColor, borderColor, borderWidth: borderColor !== 'transparent' ? 1 : 0, overflow: 'hidden', position: 'relative' }]}>
-                            <Text style={[styles.heatmapSquareText, { color: textColor, zIndex: 1 }]}>{format(day, 'd')}</Text>
-                            {showProgressBar && (
-                              <View style={{ position: 'absolute', bottom: 0, left: 0, height: 4, width: '100%', backgroundColor: '#1A1A1A' }}>
-                                <View style={{ height: '100%', width: `${progressPercent}%`, backgroundColor: habit!.color }} />
-                              </View>
-                            )}
-                          </View>
-                        );
-                      })}
-                    </View>
-                  ))}
+                          return (
+                            <View key={dateStr} style={[styles.heatmapSquare, { backgroundColor: bgColor, borderColor, borderWidth: borderColor !== 'transparent' ? 1 : 0, overflow: 'hidden', position: 'relative' }]}>
+                              <Text style={[styles.heatmapSquareText, { color: textColor, zIndex: 1 }]}>{format(day, 'd')}</Text>
+                              {showProgressBar && (
+                                <View style={{ position: 'absolute', bottom: 0, left: 0, height: 4, width: '100%', backgroundColor: '#1A1A1A' }}>
+                                  <View style={{ height: '100%', width: `${progressPercent}%`, backgroundColor: habit!.color }} />
+                                </View>
+                              )}
+                            </View>
+                          );
+                        })}
+                      </View>
+                    ))}
+                  </View>
                 </View>
-              </View>
-            </ScrollView>
+              </ScrollView>
+            )}
             
             <View style={styles.heatmapDayLabels}>
               {LOCAL_DAYS.map((d, i) => (
