@@ -28,7 +28,6 @@ export default function HabitsList() {
   const { selectedDate } = useDateStore();
   const { habits, fetchHabits, fetchHabitLogs, clearHabitLogs, addHabit, updateHabit, toggleHabitStatus, updateHabitProgress, deleteHabit, reorderHabits, isReorderMode, toggleReorderMode } = useHabitStore();
 
-  // Estados do Modal de Adicionar Hábito
   const [isModalVisible, setModalVisible] = useState(false);
   const [modalStep, setModalStep] = useState<'main' | 'color' | 'icon'>('main');
   const [editingHabitId, setEditingHabitId] = useState<number | null>(null);
@@ -45,7 +44,6 @@ export default function HabitsList() {
   const [progressInput, setProgressInput] = useState('');
   
   const [heatmapHabit, setHeatmapHabit] = useState<Habit | null>(null);
-
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const [isEveryday, setIsEveryday] = useState(true);
@@ -56,14 +54,13 @@ export default function HabitsList() {
 
   const todayDateString = format(new Date(), 'yyyy-MM-dd');
   const isPastDay = selectedDate < todayDateString;
-  
   const daysList = t('habit_modal.days', { returnObjects: true });
   const daysArray = Array.isArray(daysList) ? daysList : ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
 
-  // 1. Sempre que a data (Calendário) mudar, busca os hábitos atualizados
   useEffect(() => {
     if (isFirstRender.current) {
       isFirstRender.current = false;
+      fetchHabits(selectedDate);
       return;
     }
 
@@ -80,7 +77,7 @@ export default function HabitsList() {
         }).start();
       });
     });
-  }, [selectedDate]);
+  }, [selectedDate, fetchHabits]);
 
   const resetModal = () => {
     setNewHabitName('');
@@ -116,42 +113,38 @@ export default function HabitsList() {
       setIsEveryday(true);
       setActiveDays([0, 1, 2, 3, 4, 5, 6]);
     }
-    
     setModalVisible(true);
   };
 
-  // 3. Função para salvar o novo hábito
   const handleSaveHabit = async () => {
     if (newHabitName.trim() === '') return;
     
-    const goalNum = isQuantitative ? parseFloat(goalAmount.replace(',', '.')) : null;
-    const daysString = isEveryday ? null : activeDays.sort().join(',');
+    const parsedGoal = parseFloat(goalAmount.replace(',', '.'));
+    const goalNum = isQuantitative && !isNaN(parsedGoal) ? parsedGoal : null;
+    const daysString = isEveryday ? null : [...activeDays].sort((a,b) => a-b).join(',');
 
     if (editingHabitId) {
       await updateHabit(editingHabitId, {
-        name: newHabitName,
+        name: newHabitName.trim(),
         color: selectedColor,
         icon: selectedIcon,
         is_quantitative: isQuantitative,
         goal_amount: goalNum,
-        unit: isQuantitative ? unit : null,
-        specific_days: daysString,
-        shift: 'Qualquer'
+        unit: isQuantitative ? unit.trim() : null,
+        specific_days: daysString
       } as any, selectedDate);
     } else {
       await addHabit({
-        name: newHabitName,
+        name: newHabitName.trim(),
         frequency: 'Diário',
         specific_days: daysString,
-        shift: 'Qualquer',
         is_quantitative: isQuantitative,
         goal_amount: goalNum,
-        unit: isQuantitative ? unit : null,
+        unit: isQuantitative ? unit.trim() : null,
         color: selectedColor,
         icon: selectedIcon
       } as any, selectedDate);
     }
-
     resetModal();
   };
 
@@ -186,7 +179,6 @@ export default function HabitsList() {
     <View style={styles.container}>
       
       <Animated.View style={{ flex: 1, opacity: fadeAnim }}>
-        {/* LISTA DE HÁBITOS Pura e Estável */}
         <ScrollView contentContainerStyle={[styles.listContent, { paddingTop: 24 }]} showsVerticalScrollIndicator={false}>
           
           <View style={{ flexDirection: 'row', justifyContent: 'flex-end', alignItems: 'center', paddingHorizontal: 24, paddingBottom: 16 }}>
@@ -201,13 +193,7 @@ export default function HabitsList() {
             </TouchableOpacity>
           </View>
 
-          {habits.length === 0 ? (
-            <View style={styles.emptyContainer}>
-               <Text style={styles.emptyText}>{t('habit_list.empty_title')}</Text>
-               <Text style={styles.emptySubText}>{t('habit_list.empty_subtitle')}</Text>
-            </View>
-          ) : (
-            habits.map((item, index) => {
+          {habits.map((item, index) => {
               const isCompleted = item.is_completed === 1;
               const isFailed = item.is_completed === -1;
               const isSkipped = item.is_skipped === 1;
@@ -241,7 +227,6 @@ export default function HabitsList() {
               return (
                 <View key={item.id} style={styles.habitRow}>             
                   
-                  {/* Esquerda: Ícone Genérico e Nome */}
                   <TouchableOpacity 
                     activeOpacity={isReorderMode ? 1 : 0.7} 
                     style={styles.leftContent}
@@ -264,12 +249,10 @@ export default function HabitsList() {
                     </Text>
                   </TouchableOpacity>
 
-                  {/* Direita: Check ou Controles de Ordem */}
                   {!isReorderMode ? (
                     <TouchableOpacity 
                       activeOpacity={0.7} 
                       style={styles.rightContent}
-                      // Ao clicar na linha, marca ou desmarca o hábito neste dia!
                       onPress={() => {
                         if (isQuant) {
                           setProgressHabit(item);
@@ -315,21 +298,12 @@ export default function HabitsList() {
                   
                 </View>
               );
-            })
-          )}
+            })}
         </ScrollView>
       </Animated.View>
 
-      {/* BOTÃO FLUTUANTE DE ADICIONAR */}
       {!isReorderMode && (
-        <TouchableOpacity 
-          style={styles.fab} 
-          activeOpacity={0.8}
-          onPress={() => {
-            resetModal();
-            setModalVisible(true);
-          }}
-        >
+        <TouchableOpacity style={styles.fab} activeOpacity={0.8} onPress={() => { resetModal(); setModalVisible(true); }}>
           <Plus color="#121212" size={28} />
         </TouchableOpacity>
       )}
@@ -375,8 +349,8 @@ export default function HabitsList() {
               </TouchableOpacity>
               <TouchableOpacity style={[styles.progressSaveBtn, { backgroundColor: progressHabit?.color || '#ffffff' }]} onPress={() => {
                 if (!progressHabit) return;
-                
-                const amount = parseFloat(progressInput.replace(',', '.')) || 0;
+                const parsedVal = parseFloat(progressInput.replace(',', '.'));
+                const amount = !isNaN(parsedVal) ? parsedVal : 0;
                 updateHabitProgress(progressHabit.id, selectedDate, amount, progressHabit.goal_amount);
                 setProgressHabit(null);
               }}>
@@ -410,12 +384,8 @@ export default function HabitsList() {
         </View>
       </Modal>
 
-      {/* MODAL PRINCIPAL E SUBTELAS */}
       <Modal visible={isModalVisible} transparent={true} animationType="slide" onRequestClose={resetModal}>
-        <KeyboardAvoidingView 
-          style={styles.fullScreenModalOverlay}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        >
+        <KeyboardAvoidingView style={styles.fullScreenModalOverlay} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <SafeAreaView style={styles.fullScreenModalContent}>
             
             {modalStep === 'main' && (
@@ -451,10 +421,7 @@ export default function HabitsList() {
                     
                     <View style={styles.inputGroupFixed}>
                       <Text style={styles.label}>{t('habit_modal.color')}</Text>
-                      <TouchableOpacity 
-                        style={[styles.colorBox, { backgroundColor: selectedColor }]} 
-                        onPress={() => setModalStep('color')}
-                      />
+                      <TouchableOpacity style={[styles.colorBox, { backgroundColor: selectedColor }]} onPress={() => setModalStep('color')} />
                     </View>
                   </View>
 
@@ -523,26 +490,17 @@ export default function HabitsList() {
                         <TouchableOpacity 
                           key={index} 
                           activeOpacity={0.7}
-                          style={[
-                            styles.minimalDayItem,
-                            isActive && { backgroundColor: selectedColor }
-                          ]}
+                          style={[styles.minimalDayItem, isActive && { backgroundColor: selectedColor }]}
                           onPress={() => {
                             setIsEveryday(false);
                             setActiveDays(prev => {
-                              const newDays = prev.includes(index)
-                                ? prev.filter(d => d !== index)
-                                : [...prev, index];
-                              
+                              const newDays = prev.includes(index) ? prev.filter(d => d !== index) : [...prev, index];
                               if (newDays.length === 7) setIsEveryday(true);
                               return newDays;
                             });
                           }}
                         >
-                          <Text style={[
-                            styles.minimalDayText, 
-                            isActive ? { color: '#121212' } : { color: '#666666' }
-                          ]}>
+                          <Text style={[styles.minimalDayText, isActive ? { color: '#121212' } : { color: '#666666' }]}>
                             {day}
                           </Text>
                         </TouchableOpacity>

@@ -24,24 +24,16 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
   isReorderMode: false,
 
   toggleReorderMode: () => set((state) => ({ isReorderMode: !state.isReorderMode })),
-
   clearHabitLogs: () => set({ habitLogs: [] }),
 
-  // Busca todos os hábitos e cruza com os Logs do dia selecionado
   fetchHabits: async (date) => {
     if (!date) return;
     try {
       const [year, month, day] = date.split('-').map(Number);
       const dayOfWeek = new Date(year, month - 1, day).getDay();
       
-      // Utiliza um LEFT JOIN: Pega todos os hábitos e, SE houver um log para hoje, traz junto.
       const result = await db.getAllAsync<Habit>(`
-        SELECT 
-          h.*, 
-          l.id as log_id, 
-          l.is_completed, 
-          l.is_skipped, 
-          l.amount_completed 
+        SELECT h.*, l.id as log_id, l.is_completed, l.is_skipped, l.amount_completed 
         FROM habits h
         LEFT JOIN habit_logs l ON h.id = l.habit_id AND l.target_date = ?
         WHERE h.specific_days IS NULL OR h.specific_days LIKE ?
@@ -54,7 +46,6 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
     }
   },
 
-  // Busca o histórico completo de um único hábito para desenhar o Heatmap
   fetchHabitLogs: async (habitId) => {
     try {
       const result = await db.getAllAsync<HabitLog>(
@@ -67,7 +58,6 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
     }
   },
 
-  // Adiciona um novo hábito mestre no banco
   addHabit: async (habit, currentDate) => {
     try {
       await db.runAsync(`
@@ -84,9 +74,7 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
         habit.icon ?? 'Activity'
       ]);
       
-      if (currentDate) {
-        await get().fetchHabits(currentDate);
-      }
+      if (currentDate) await get().fetchHabits(currentDate);
     } catch (error) {
       console.error('Erro ao adicionar hábito:', error);
     }
@@ -110,19 +98,15 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
         habitId
       ]);
       
-      if (currentDate) {
-        await get().fetchHabits(currentDate);
-      }
+      if (currentDate) await get().fetchHabits(currentDate);
     } catch (error) {
       console.error('Erro ao atualizar hábito:', error);
     }
   },
 
-  // Marca/Desmarca o hábito no dia específico
   toggleHabitStatus: async (habitId, date, currentCompleted = 0, currentSkipped = 0) => {
     if (!habitId || !date) return;
     try {
-      // Inverte o status atual (O ciclo: Pendente -> Concluído -> Isento -> Falha -> Pendente)
       let nextCompleted = 0;
       let nextSkipped = 0;
 
@@ -140,27 +124,14 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
         nextSkipped = 0;
       }
       
-      // Verifica se já existe um registro (Log) para este hábito neste dia
-      const existingLog = await db.getFirstAsync(
-        'SELECT id FROM habit_logs WHERE habit_id = ? AND target_date = ?', 
-        [habitId, date]
-      );
+      const existingLog = await db.getFirstAsync('SELECT id FROM habit_logs WHERE habit_id = ? AND target_date = ?', [habitId, date]);
       
       if (existingLog) {
-         // Atualiza o log existente
-         await db.runAsync(
-           'UPDATE habit_logs SET is_completed = ?, is_skipped = ? WHERE habit_id = ? AND target_date = ?', 
-           [nextCompleted, nextSkipped, habitId, date]
-         );
+         await db.runAsync('UPDATE habit_logs SET is_completed = ?, is_skipped = ? WHERE habit_id = ? AND target_date = ?', [nextCompleted, nextSkipped, habitId, date]);
       } else {
-         // Cria um log novo para este dia
-         await db.runAsync(
-           'INSERT INTO habit_logs (habit_id, target_date, is_completed, is_skipped) VALUES (?, ?, ?, ?)', 
-           [habitId, date, nextCompleted, nextSkipped]
-         );
+         await db.runAsync('INSERT INTO habit_logs (habit_id, target_date, is_completed, is_skipped) VALUES (?, ?, ?, ?)', [habitId, date, nextCompleted, nextSkipped]);
       }
       
-      // Recarrega a lista para atualizar a bolinha na tela imediatamente
       await get().fetchHabits(date);
     } catch (error) {
       console.error('Erro ao alternar status do hábito:', error);
@@ -171,21 +142,12 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
     if (!habitId || !date) return;
     try {
       const isCompleted = amountCompleted >= (goalAmount || 0) ? 1 : 0;
-      const existingLog = await db.getFirstAsync(
-        'SELECT id FROM habit_logs WHERE habit_id = ? AND target_date = ?', 
-        [habitId, date]
-      );
+      const existingLog = await db.getFirstAsync('SELECT id FROM habit_logs WHERE habit_id = ? AND target_date = ?', [habitId, date]);
       
       if (existingLog) {
-         await db.runAsync(
-           'UPDATE habit_logs SET amount_completed = ?, is_completed = ?, is_skipped = 0 WHERE habit_id = ? AND target_date = ?', 
-           [amountCompleted, isCompleted, habitId, date]
-         );
+         await db.runAsync('UPDATE habit_logs SET amount_completed = ?, is_completed = ?, is_skipped = 0 WHERE habit_id = ? AND target_date = ?', [amountCompleted, isCompleted, habitId, date]);
       } else {
-         await db.runAsync(
-           'INSERT INTO habit_logs (habit_id, target_date, is_completed, is_skipped, amount_completed) VALUES (?, ?, ?, 0, ?)', 
-           [habitId, date, isCompleted, amountCompleted]
-         );
+         await db.runAsync('INSERT INTO habit_logs (habit_id, target_date, is_completed, is_skipped, amount_completed) VALUES (?, ?, ?, 0, ?)', [habitId, date, isCompleted, amountCompleted]);
       }
       
       await get().fetchHabits(date);
@@ -198,9 +160,7 @@ export const useHabitStore = create<HabitStore>((set, get) => ({
     if (!habitId) return;
     try {
       await db.runAsync('DELETE FROM habits WHERE id = ?', [habitId]);
-      if (currentDate) {
-        await get().fetchHabits(currentDate);
-      }
+      if (currentDate) await get().fetchHabits(currentDate);
     } catch (error) {
       console.error('Erro ao deletar hábito:', error);
     }
