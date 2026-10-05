@@ -3,6 +3,7 @@ import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar'; // <-- Adicionado aqui
 import * as SystemUI from 'expo-system-ui';
 import React, { useEffect, useState } from 'react';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { initDB } from '../src/database/db';
 import i18n from '../src/locales';
 import { useSettingsStore } from '../src/store/useSettingsStore';
@@ -44,11 +45,11 @@ export default function RootLayout() {
   }
 
   return (
-    <>
+    <GestureHandlerRootView style={{ flex: 1 }}>
       <StatusBar style="light" />
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="(home)" />
       </Stack>
-    </>
+    </GestureHandlerRootView>
   );
 }
